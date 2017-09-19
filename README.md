@@ -124,7 +124,7 @@ Report arguments:
   --journalyear         Produce table showing number of papers in different
                         journals, each year.
   --tagcountdaterange   Produce table showing number of papers that were
-                        tagged with each tag during a given time perioud.
+                        tagged with each tag during a given time period.
                         --entrystartdate and --entryenddate parameters are
                         required if --tagcountdaterange is specified.
   --entrystartdate ENTRYSTARTDATE
@@ -153,7 +153,7 @@ and links to those publications to help curate them
 
 The goals are two-fold
 
-- Keep track of relevant pubs in a selected online citation manager service (e.g., CiteUlike, Zotero)
+- Keep track of relevant pubs in a selected online citation manager service (e.g., CiteULike, Zotero)
 - Avoid looking at any publication (to see if it is relevant) more than once.
    - This requires also keeping track of *irrelevant* publications.
 
@@ -222,7 +222,7 @@ How publications are added depends on the reference manager:
 
 First, you'll need to have a CiteULike account.  Set that up, and then make sure you are logged in before you start to walk through the generated HTML page.
 
-For CiteULike libraries, the generated HTML page will include an "Submit to CiteULike" link for any publication that PubSpork does not think is already in your CiteULike library.  Clicking on this link submit's the publication's URL to CiteULike and CiteULike does its best to prepopulate a new publication form with as much metadata as it can.
+For CiteULike libraries, the generated HTML page will include an "Submit to CiteULike" link for any publication that PubSpork does not think is already in your CiteULike library.  Clicking on this link submits the publication's URL to CiteULike and CiteULike does its best to prepopulate a new publication form with as much metadata as it can.
 
 It's now your job to assign any tags and a priority to new paper.
 
@@ -246,13 +246,13 @@ The **Post URL** form also supports submitting DOIs (doi:10.xxxx), PubMed IDs (p
 
 CiteULike allows you to directly import RIS or BibTeX and many websites support exporting a citation to the publication in one of both of these formats.  To do this, navigate to:
 
-- if you are adding pubs to just your personal libary:
+- if you are adding pubs to just your personal library:
   - **MyCiteULike** &rarr; **Import**
 - if you re adding pubs to a CiteULike group:
   - **MyCiteULike** &rarr; **Groups** &rarr;  *your group's library page* &rarr;
     **Group:** *your group's name* &rarr;  **Import**
 
-and then paste the RIS or BibTeX into the form and submit it.  Note that the item may require some manual editing of keywords after enterring.
+and then paste the RIS or BibTeX into the form and submit it.  Note that the item may require some manual editing of keywords after entering.
 
 
 #### What if the pub's website does not support RIS or BibTeX export?
@@ -276,7 +276,7 @@ To add a paper to Zotero, follow the link in the generated HTML page to the pape
 
 ##### Get a Zotero account 
 
-If you don't already have a Zotero account, you'll need to [set one up](https://www.zotero.org/user/register/). You'll need to confirm your account through your email.  You can use the free acount: you won't need any storage for this work as we don't store PDFs in the Galaxy Group.
+If you don't already have a Zotero account, you'll need to [set one up](https://www.zotero.org/user/register/). You'll need to confirm your account through your email.  You can use the free account: you won't need any storage for this work as we don't store PDFs in the Galaxy Group.
 
 ##### Install the Zotero client on your computer
 
@@ -300,11 +300,11 @@ Clicking on the Zotero Connector in your web browser sends the publication on th
 
 At this point you can add tags if you want to.
 
-Meanwhile, Zotero is automatically synching any updates you make in the client back to the online version of your library back at Zotero.org.
+Meanwhile, Zotero is automatically syncing any updates you make in the client back to the online version of your library back at Zotero.org.
 
 ## How is my *known pubs DB* updated?
 
-The *known pubs DB* contains every publication you have ever looked at, including the irrelevnt ones.  It is used to help generate the HTML page used in curation, and to help avoid looking at any paper more than once.
+The *known pubs DB* contains every publication you have ever looked at, including the irrelevant ones.  It is used to help generate the HTML page used in curation, and to help avoid looking at any paper more than once.
 
 It is updated in two ways:
 
@@ -320,7 +320,7 @@ This may be the most tedious and error prone part of this process. I hope to rep
 To manually update the *known pubs DB*:
 
 - Open the TSV file in a spreadsheet program.  LibreOffice does well with TSV format.
-- As you walk through the generated HTML page, some publications will be added to your *relevant pubs lib*, but some of the newly reported publications will be irrelevant (espcially if you have a project name like Galaxy or R).  In order to avoid looking at this publication again next time:
+- As you walk through the generated HTML page, some publications will be added to your *relevant pubs lib*, but some of the newly reported publications will be irrelevant (especially if you have a project name like Galaxy or R).  In order to avoid looking at this publication again next time:
   - Find the irrelevant publication in the spreadsheet.
   - Set the `state` column to `ignore`
   - Optionally add a comment to the annotation column about why the pub is irrelevant

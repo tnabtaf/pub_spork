@@ -147,7 +147,7 @@ def get_args():
         "--tagcountdaterange", required=False, action="store_true",
         help=(
             "Produce table showing number of papers that were tagged with "
-            + "each tag during a given time perioud. --entrystartdate and "
+            + "each tag during a given time period. --entrystartdate and "
             + "--entryenddate parameters are required if --tagcountdaterange "
             + "is specified."))
     report_args.add_argument(
