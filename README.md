@@ -182,20 +182,20 @@ The goals are two-fold
 
 This example takes as input:
 
-1. New publication email alerts:
+- New publication email alerts:
   - sent the GMail account youraccount@gmail.com (`--email`, `--imaphost`)
   - between August 24 and September 18, 2017 (`--since`, `--before`)
   - from only the mailbox "Papers" (`--mailbox`)
   - from all supported email alert sources (`--sources`)
     - (Currently) Web of Science, ScienceDirect, MyNCBI, Wiley Online Library, and Google Scholar.
-1. A library of publications we have already identified as being of interest:
-  - Library is from Zotero in CSV format, and is available locally (`--libtype`, `--inputlibpath`)
-1. A *known pubs DB* with pubs we have already looked at (`--knownpubdbin`)
+- A library of publications we have already identified as being of interest:
+- Library is from Zotero in CSV format, and is available locally (`--libtype`, `--inputlibpath`)
+- A *known pubs DB* with pubs we have already looked at (`--knownpubdbin`)
   - This is in TSV format and was likely produced by the previous run of `pub_spork.py`
 
 ## Outputs
 
-1. An HTML page listing all newly reported publications
+- An HTML page listing all newly reported publications
   - This is sent to `stdout`
   - It will contain links to
     - Pubs that have already been added to your library (`--onlineliburl`)
@@ -204,7 +204,7 @@ This example takes as input:
   - This report can be used to help update both
     - Your *relevant pubs lib* (in this case, your library in Zotero)
     - Your TSV *known pubs DB*.
-1. An updated TSV *known pubs DB*.
+- An updated TSV *known pubs DB*.
   - This lists all the publications we have ever looked at, including ones that turned out to be irrelevant. 
   - This is a combination of
     - The previous version of the *known pubs DB*
@@ -308,10 +308,10 @@ The *known pubs DB* contains every publication you have ever looked at, includin
 
 It is updated in two ways:
 
-1. By running PubSpork with `--match`.  This does a couple of things
+- By running PubSpork with `--match`.  This does a couple of things
   - Adds entries for any publications that were reported for the first time.
   - Updates or adds entries for every publications in your *relevant pubs lib* to indicate that we know about them, and that they have already been processed.
-1. Manually by you, while you are curating relevant papers. using a spreadsheet program
+- Manually by you, while you are curating relevant papers. using a spreadsheet program
 
 ### Manually updating the *known pubs DB*
 
@@ -319,8 +319,8 @@ This may be the most tedious and error prone part of this process. I hope to rep
 
 To manually update the *known pubs DB*:
 
-1. Open the TSV file in a spreadsheet program.  LibreOffice does well with TSV format.
-1. As you walk through the generated HTML page, some publications will be added to your *relevant pubs lib*, but some of the newly reported publications will be irrelevant (espcially if you have a project name like Galaxy or R).  In order to avoid looking at this publication again next time:
+- Open the TSV file in a spreadsheet program.  LibreOffice does well with TSV format.
+- As you walk through the generated HTML page, some publications will be added to your *relevant pubs lib*, but some of the newly reported publications will be irrelevant (espcially if you have a project name like Galaxy or R).  In order to avoid looking at this publication again next time:
   - Find the irrelevant publication in the spreadsheet.
   - Set the `state` column to `ignore`
   - Optionally add a comment to the annotation column about why the pub is irrelevant
