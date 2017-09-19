@@ -50,7 +50,7 @@ There are two distinct data stores for PubSpork.  Keeping track of which is whic
 
 ### Relevant Pubs Library
 
-This is a collection of publications that we have already looked at and determined to be relevant to our our interests.  The *relevant rubs lib* is stored online, in a reference manager such as CiteULike or Zotero.
+This is a collection of publications that we have already looked at and determined to be relevant to our our interests.  The *relevant pubs lib* is stored online, in a reference manager such as CiteULike or Zotero.
 
 The end goal of PubSpork is to help you create your *relevant pubs lib*.
 
@@ -64,7 +64,7 @@ Not all pubs that are reported to us in alerts are relevant to our interests.  T
 # Arguments
 
 ```
-pub_sport.py --help
+pub_spork.py --help
 
 optional arguments:
   -h, --help            show this help message and exit
