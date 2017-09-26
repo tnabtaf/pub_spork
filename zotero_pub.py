@@ -93,7 +93,8 @@ class Pub(publication.Pub):
                 file=sys.stderr)
             print("  Does not have a publication year.\n", file=sys.stderr)
 
-        self.tags = self._zot_csv["Manual Tags"]  # Semicolon separated list
+        # Tags are a semicolon separated list
+        self.tags = self._zot_csv["Manual Tags"].split("; ")
 
         if self._zot_csv["Item Type"] == "journalArticle":
             journal = self._zot_csv["Publication Title"]
@@ -160,7 +161,7 @@ class PubLibrary(publication.PubLibrary):
     def gen_tag_url(self, tag):
         """Given a tag, generate the URL that shows all papers with that tag.
         """
-        tag_url = self.lib_url + "/tag/" + tag
+        tag_url = self.url + "/tag/" + tag
 
         return tag_url
 
@@ -170,7 +171,7 @@ class PubLibrary(publication.PubLibrary):
 
         """
         tag_year_url = (
-            self.lib_url
+            self.url
             + "/q/" + year
             + "/tag/" + tag)
 

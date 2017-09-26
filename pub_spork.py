@@ -166,11 +166,20 @@ def get_args():
         help=(
             "--tagcountdaterange will report on papers with entry dates "
             + "less than or equal to this date. Example: 2017-01-29. "))
+    report_args.add_argument(
+        "--onlythesetags", required=False,
+        help=(
+            "Can either generate a report about all tags in the library, "
+            + "or, only about a subset of tags. If this parameter is given "
+            + "then only the tags listed in this file will be reported on. "
+            + "List one tag per line."))
 
+    
     args = arg_parser.parse_args()
 
-    # split comma separated list of sources
-    args.sources = args.sources.split(",")
+    if args.match:
+        # split comma separated list of sources
+        args.sources = args.sources.split(",")
 
     return args
 

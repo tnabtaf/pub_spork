@@ -131,6 +131,13 @@ def get_args():
         help=(
             "--tagcountdaterange will report on papers with entry dates "
             + "less than or equal to this date. Example: 2017-01-29"))
+    report_args.add_argument(
+        "--onlythesetags", required=False,
+        help=(
+            "Can either generate a report about all tags in the library, "
+            + "or, only about a subset of tags. If this parameter is given "
+            + "then only the tags listed in this file will be reported on. "
+            + "List one tag per line."))
 
     return(arg_parser.parse_args())
 
@@ -140,7 +147,7 @@ def generate_lib_report(args):
     input_lib = lib_module.PubLibrary(args.inputlibpath, args.onlineliburl)
 
     # Setup fast access to lib on anything we might report on.
-    input_lib.prep_for_reports()
+    input_lib.prep_for_reports(args.onlythesetags)
 
     # What format should the report be in?
     format_module = report_formats.get_format_module(args.reportformat)

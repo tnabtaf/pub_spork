@@ -139,6 +139,11 @@ Report arguments:
                         --tagcountdaterange will report on papers with entry
                         dates less than or equal to this date. Example:
                         2017-01-29.
+  --onlythesetags ONLYTHESETAGS
+                        Can either generate a report about all tags in the
+                        library, or, only about a subset of tags. If this
+                        parameter is given then only the tags listed in this
+                        file will be reported on. List one tag per line.
 ```
 
 # Supporting Curation (`--match`)

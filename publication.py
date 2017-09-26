@@ -134,17 +134,24 @@ class PubLibrary(object):
         """
         return self._by_canonical_doi.get(canonical_doi)
 
-    def prep_for_reports(self):
+    def prep_for_reports(self, only_these_tags_path=None):
         """Called by reporting programs to setup a bunch of quick-access
         data structures for reporting about the library.
-        """
-
+        """            
+        
         # These are replaced by frozensets at the end.
         by_year = {}          # unordered array of papers from that year
         by_tag = {}           # value is unordered array of papers w/ tag
         by_journal = {}       # unordered list of papers in each journal
 
         sorted_by_journal = []  # sorted by canonical journal name
+
+        if only_these_tags_path:
+            # only pay attention to tags listed in the file.
+            tag_file = open(only_these_tags_path, "r")
+            for tag in tag_file:
+                by_tag[tag.strip()] = []
+            tag_file.close()
 
         # key is canonical Journal Name; value is alphabetized rank.
         self._journal_alpha_rank = {}
@@ -161,11 +168,15 @@ class PubLibrary(object):
 
             # Process tags
             for tag in paper.tags:
-                if tag not in by_tag:
-                    by_tag[tag] = []
-                by_tag[tag].append(paper)
+                if only_these_tags_path:
+                    if tag in by_tag:
+                        by_tag[tag].append(paper)
+                else:
+                    if tag not in by_tag:
+                        by_tag[tag] = []
+                    by_tag[tag].append(paper)
             if len(paper.tags) == 0:
-                # should not happen, fix it when it happens.
+                # should not happen, flag it when it happens.
                 print("Paper missing tags: " + paper.title, file=sys.stderr)
 
             # Process Journal
