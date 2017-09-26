@@ -97,6 +97,14 @@ def get_args():
     arg_parser.add_argument(
         "--knownpubsout", required=False,
         help="Create a history of this run in TSV format as well.")
+
+    arg_parser.add_argument(
+        "--okduplicatetitles", required=False,
+        help=(
+            "Text file containing duplicate titles that have been reviewed "
+            + "and are in fact not duplicate titles.  These will not get "
+            + "reported as duplicates."))
+
     """
     arg_parser.add_argument(
         "--verify1stauthors", required=False,
@@ -251,11 +259,18 @@ def match_pubs(command_line_args):
                 connection.module.SENDER, mailbox=args.mailbox,
                 since=args.since, before=args.before))
 
+    ok_dup_titles = []    # List of titles that it's ok to have duplicates of.
+    if command_line_args.okduplicatetitles:
+        dup_titles_file = open(command_line_args.okduplicatetitles, 'r')
+        for title in dup_titles_file:
+            ok_dup_titles.append(title)
+        dup_titles_file.close()
+
     # now have library, a list of pubs we have seen before, and new pub alerts
     # to match against each other.  Create a matchup DB.
     pub_matchups = pub_match.PubMatchDB(
         pub_library=input_lib, pub_alerts=pub_alerts,
-        known_pubs_db=known_pubs_db)
+        known_pubs_db=known_pubs_db, ok_dup_titles=ok_dup_titles)
 
     # Print out any matchups that have new pub_alerts
     print(html_report.gen_header())

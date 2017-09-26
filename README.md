@@ -112,6 +112,10 @@ Match arguments:
                         format.
   --knownpubsout KNOWNPUBSOUT
                         Where to put the new known pubs DB (in TSV format).
+  --okduplicatetitles OKDUPLICATETITLES
+                        Text file containing duplicate titles that have been
+                        reviewed and are in fact not duplicate titles. These
+                        will not get reported as duplicates.
 
 Report arguments:
   --reportformat REPORTFORMAT

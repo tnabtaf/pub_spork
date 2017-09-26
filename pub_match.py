@@ -8,7 +8,7 @@
 import sys
 
 import known_pub_db
-
+import publication
 
 class PubMatch(object):
     """A pub match is a collection of pubs that we believe are all the same
@@ -215,13 +215,21 @@ class PubMatchDB(object):
     individual PubMatch objects.
     """
 
-    def __init__(self, pub_library, pub_alerts, known_pubs_db=None):
+    def __init__(self, pub_library, pub_alerts, known_pubs_db=None,
+                     ok_dup_titles=None):
         """Create a PubMatch database, given an input publication library, an
         optional db of known pubs, and a list of new pub alerts.
         """
         # Provide quick access via title and DOI
         self._by_canonical_doi = {}
         self._by_canonical_title = {}
+
+        # Procss duplicate pub titles that should be ignored.
+        self._ok_dups_by_canonical_title = set()
+        if ok_dup_titles:
+            for ok_title in ok_dup_titles:
+                self._ok_dups_by_canonical_title.add(
+                    publication.to_canonical(ok_title))
 
         # Create PubMatch's for every entry in the library.
         for lib_pub in pub_library.get_pubs():
@@ -249,7 +257,9 @@ class PubMatchDB(object):
             self._by_canonical_doi[pub_match.canonical_doi] = pub_match
 
         if pub_match.canonical_title:
-            if pub_match.canonical_title in self._by_canonical_title:
+            if (pub_match.canonical_title in self._by_canonical_title
+                    and pub_match.canonical_title
+                        not in self._ok_dups_by_canonical_title):
                 print(
                     "Warning: Title in library more than once.",
                     file=sys.stderr)

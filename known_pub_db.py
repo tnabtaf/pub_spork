@@ -159,7 +159,7 @@ class KnownPubDB(object):
         if known_pubs_file_path:
             tsv_in = open(known_pubs_file_path, "r")
             tsv_reader = csv.DictReader(
-                tsv_in, fieldnames=COLUMNS, dialect="excel-tab")
+                tsv_in, dialect="excel-tab")  # fieldnames=COLUMNS
             for row in tsv_reader:
                 db_entry = KnownPubDBEntry(row)
                 self.add_known_pub(db_entry)
@@ -343,8 +343,8 @@ class KnownPubDB(object):
                 past_entries.append(entry)
             else:
                 print(
-                    "Warning: Entry with unkown state '{0}' "
-                    + "written to DB.".format(entry_state),
+                    ("Warning: Entry with unkown state '{0}' "
+                     + "written to DB.").format(entry_state),
                     file=sys.stderr)
                 print(
                     "  Title: {0}".format(entry.get_title()),

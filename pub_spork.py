@@ -119,6 +119,12 @@ def get_args():
     match_args.add_argument(
         "--knownpubsout", required=False,
         help="Where to put the new known pubs DB (in TSV format).")
+    match_args.add_argument(
+        "--okduplicatetitles", required=False,
+        help=(
+            "Text file containing duplicate titles that have been reviewed "
+            + "and are in fact not duplicate titles.  These will not get "
+            + "reported as duplicates."))
 
     report_args = arg_parser.add_argument_group(
         title="Report arguments", description=None)
