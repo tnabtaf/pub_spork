@@ -101,6 +101,7 @@ class PubLibrary(object):
         if pub.canonical_title is None or pub.canonical_title == "":
             # everything should have a title
             raise AssertionError("Pub has empty title")
+        # TODO: This will overwrite anything with a duplicate title.
         self._by_canonical_title[pub.canonical_title] = pub
         # not everything has a doi
         if pub.canonical_doi:
@@ -111,7 +112,7 @@ class PubLibrary(object):
     def __len__(self):
         """Return number of pubs in library."""
         # Every pub has a title.
-        return(len(self._by_canonical_title))
+        return(len(self.all_pubs))
 
     def get_by_canonical_title(self, canonical_title):
         """Given a canonical title string, return the pub for that title.
