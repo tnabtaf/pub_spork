@@ -101,7 +101,7 @@ def gen_tag_year_report(
             n_papers_this_year, all_papers_count)
         report.append(
             '    <td ' + year_count_style + '> '
-            + '<a href="' + lib.gen_tag_year_url(tag, year) + '">'
+            + '<a href="' + lib.gen_year_url(year) + '">'
             + str(n_papers_this_year) + '</a> </td>\n')
         report.append('  </tr>\n')
 

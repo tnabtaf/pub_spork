@@ -137,7 +137,8 @@ class PubLibrary(publication.PubLibrary):
         self.is_user_lib = False
         self.is_group_lib = False
         url_parts = urllib.parse.urlparse(self.url)
-        if url_parts.path.startswith("/groups/"):  # /groups/1724202/testing_groups/items
+        # /groups/1724202/testing_groups/items
+        if url_parts.path.startswith("/groups/"):
             self.is_group_lib = True
             parts = url_parts.path.split("/")
             self._zot_group_id = parts[2]
@@ -154,16 +155,27 @@ class PubLibrary(publication.PubLibrary):
             self.add_pub(zot_pub)
 
         zot_file.close()
-        self.num_pubs = len(self._by_canonical_title)
+        self.num_pubs = len(self.all_pubs)
 
         return None
 
     def gen_tag_url(self, tag):
         """Given a tag, generate the URL that shows all papers with that tag.
         """
-        tag_url = self.url + "/tag/" + tag
+        tag_url = self.url + "tag/" + tag
 
         return tag_url
+
+    def gen_year_url(self, year):
+        """Given a year, generate a URL thot shows all papers published in 
+        that year.
+
+        """
+        year_url = (
+            self.url
+            + "q/" + year)
+
+        return year_url
 
     def gen_tag_year_url(self, tag, year):
         """Given a tag and a year, generate a URL thot shows all papers with
@@ -172,7 +184,7 @@ class PubLibrary(publication.PubLibrary):
         """
         tag_year_url = (
             self.url
-            + "/q/" + year
+            + "q/" + year
             + "/tag/" + tag)
 
         return tag_year_url
