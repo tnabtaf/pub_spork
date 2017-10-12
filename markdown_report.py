@@ -16,11 +16,32 @@ def gen_header():
     return ""
 
 
-def gen_footerer():
-    """Generate a footer for Markdown.  Markdown does not have a footerer."""
+def gen_footer():
+    """Generate a footer for Markdown.  Markdown does not have a footer."""
     return ""
 
+def gen_year_report(lib, years_ordered):
+    """Generate a year report showing the number of published papers in each
+    year passed in.
 
+    If you want a color scale then call the HTML version of this routine.
+    """
+    report = []
+    # Header
+    report.append("| Year | # |\n")
+    report.append("| ----: | ----: |\n")
+
+    # Years
+    n_papers_across_years = 0
+    for year in years_ordered:
+        n_papers_this_year = len(lib.get_pubs(year=year))
+        n_papers_across_years += n_papers_this_year
+        report.append('| {0} | {1} |\n'.format(year, n_papers_this_year))
+
+    # Total
+    report.append('| Total | {0} |\n'.format(n_papers_across_years))
+        
+    return report
 
 def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     """Generate a tagyear report in Markdown format.

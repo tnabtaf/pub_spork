@@ -56,6 +56,50 @@ def gen_count_style(count, max_count):
     return style
 
 
+def gen_year_report(
+        lib, years_ordered, actually_markdown=False):
+    """Generate a year report, for the given years, in HTML format.
+    """
+    report = []
+    if not actually_markdown:
+        # Generate header.
+        report.append(gen_header())
+    report.append('<table class="table">\n')
+    report.append('  <tr>\n')
+    report.append('    <th> Year </th>\n')
+    report.append('    <th> # </th>\n')
+    report.append('  </tr>\n')
+
+    # Years
+    n_papers_across_years = 0
+    n_papers_this_year = {}
+    for year in years_ordered:
+        n_papers_this_year[year] = len(lib.get_pubs(year=year))
+        n_papers_across_years += n_papers_this_year[year]
+
+    for year in years_ordered:
+        style = gen_count_style(
+            n_papers_this_year[year], n_papers_across_years)
+        report.append('  <tr>\n')
+        report.append('    <td> {0} </td>\n'.format(year))
+        report.append('    <td {0}> {1} </td>\n'.format(
+                style, n_papers_this_year[year]))
+        report.append('  </tr>\n')
+
+    # Total
+    style = gen_count_style(n_papers_across_years, n_papers_across_years)
+    report.append('  <tr>\n')
+    report.append('    <td class="text-right"> Total </td>\n')
+    report.append(
+        '    <td {0}> {1} </td>\n'.format(
+            style, n_papers_across_years))
+    report.append('  </tr>\n')
+
+    if not actually_markdown:
+        report.append(gen_footer())
+
+    return report
+
 def gen_tag_year_report(
         lib, tags_ordered, n_papers_w_tag, years_ordered,
         actually_markdown=False):

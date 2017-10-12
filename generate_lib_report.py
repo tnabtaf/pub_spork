@@ -7,6 +7,15 @@ import collections
 import lib_types
 import report_formats
 
+def gen_year_report(lib, format_module):
+    """Generate table with one row per year, and another column showing the
+    number of papers published that year.
+
+    return report as a text string.
+    """
+    report = format_module.gen_year_report(lib, lib.get_years())
+
+    return(u"".join(report))
 
 def gen_tag_year_report(lib, format_module):
     """Generate table with one row per year, and one column per tag.
@@ -100,6 +109,9 @@ def get_args():
             + report_formats.get_formats_as_text_list()
             + "."))
     arg_parser.add_argument(
+        "--year", required=False, action="store_true",
+        help="Produce table showing number of papers published each year.")
+    arg_parser.add_argument(
         "--tagyear", required=False, action="store_true",
         help=(
             "Produce table showing number of papers with each tag, "
@@ -155,6 +167,9 @@ def generate_lib_report(args):
     # Generate each report that was requested.
     if args.tagyear:
         print(gen_tag_year_report(input_lib, format_module))
+
+    if args.year:
+        print(gen_year_report(input_lib, format_module))
 
     if args.tagcountdaterange:
         print(gen_tag_count_date_range_report(

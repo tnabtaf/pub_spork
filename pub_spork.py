@@ -134,6 +134,9 @@ def get_args():
             "What format to generate the report in. Options are "
             + report_formats.get_formats_as_text_list()
             + "."))
+    arg_parser.add_argument(
+        "--year", required=False, action="store_true",
+        help="Produce table showing number of papers published each year.")
     report_args.add_argument(
         "--tagyear", required=False, action="store_true",
         help=(
