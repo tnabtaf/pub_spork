@@ -28,7 +28,7 @@ class Pub(object):
     """
 
     def __init__(self):
-        """Create an indentified publication.
+        """Create an identified publication.
 
         This is only meant to be called by subclass constructors.  It is not
         meant to be invoked directly.
@@ -49,8 +49,8 @@ class Pub(object):
         self.year = None                  # Publication year
         # TODO: maybe this should be a set?
         self.tags = None                  # List of Keywords for this pub
-        # TODO: Do we need canonical journal?  Maybe for reporting.
-        self.canonical_journal = None     # None if not from a journal
+        self.journal_name = None          # Name if from a journal 
+        self.canonical_journal = None     #  None if not from a journal
         self.ref = None                   # reference to pub
         self.entry_date = None            # Date added to library.
 
@@ -88,10 +88,17 @@ class PubLibrary(object):
           lookup by canonical title
 
         """
+        self.url = None
         self.all_pubs = []
         self._by_canonical_title = {}
         self._by_canonical_doi = {}
-        self.url = None
+
+        # These are populated by prep_for_reports
+        self._by_year = None
+        self._by_tag = None
+        self._by_journal = None
+        self._journal_alpha_rank = None
+        self.journal_pubs_rank = None
 
         return None
 
@@ -203,6 +210,13 @@ class PubLibrary(object):
         sorted_by_journal.sort()
         for idx in range(len(sorted_by_journal)):
             self._journal_alpha_rank[sorted_by_journal[idx]] = idx
+
+        # create list of Journal names sorted by most pubs.
+        self.journal_pubs_rank = sorted(
+            by_journal.values(),
+            key=lambda jrnl_pubs: "{:09d}{}".format(
+                len(self.all_pubs) - len(jrnl_pubs),
+                jrnl_pubs[0].canonical_journal))
 
         return(None)
 

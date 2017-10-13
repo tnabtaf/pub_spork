@@ -97,8 +97,9 @@ class Pub(publication.Pub):
         self.tags = self._zot_csv["Manual Tags"].split("; ")
 
         if self._zot_csv["Item Type"] == "journalArticle":
-            journal = self._zot_csv["Publication Title"]
-            self.canonical_journal = publication.to_canonical(journal)
+            self.journal_name = self._zot_csv["Publication Title"]
+            self.canonical_journal = publication.to_canonical(
+                self.journal_name)
         else:
             self.canonical_journal = None
 
@@ -169,25 +170,18 @@ class PubLibrary(publication.PubLibrary):
     def gen_year_url(self, year):
         """Given a year, generate a URL thot shows all papers published in 
         that year.
-
+        
+        This can't be done in Zotero.  Return None
         """
-        year_url = (
-            self.url
-            + "q/" + year)
-
-        return year_url
+        return None
 
     def gen_tag_year_url(self, tag, year):
         """Given a tag and a year, generate a URL thot shows all papers with
         that tag published in that year.
 
+        This can't be done in Zotero.  Return None.
         """
-        tag_year_url = (
-            self.url
-            + "q/" + year
-            + "/tag/" + tag)
-
-        return tag_year_url
+        return None
 
     def gen_pub_url_in_lib(self, pub):
         """given a pub in this library, generate a link to it online."""

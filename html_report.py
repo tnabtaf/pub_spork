@@ -100,6 +100,38 @@ def gen_year_report(
 
     return report
 
+def gen_journal_report(lib, actually_markdown=False):
+    """Generate a report listing all journals, ranked by number of pubs,
+    in HTML format.
+    """
+    report = []
+    if not actually_markdown:
+        # Generate header.
+        report.append(gen_header())
+    report.append('<table class="table">\n')
+    report.append('  <tr>\n')
+    report.append('    <th> Rank </th>\n')
+    report.append('    <th> Journal </th>\n')
+    report.append('    <th> # </th>\n')
+    report.append('  </tr>\n')
+
+    rank = 0
+    jrnl_idx = 0
+    n_prior_pubs = 0
+    for jrnl_pubs in lib.journal_pubs_rank:
+        jrnl_idx += 1
+        n_current_pubs = len(jrnl_pubs)
+        if n_prior_pubs != n_current_pubs:
+            rank = jrnl_idx
+            n_prior_pubs = n_current_pubs
+        report.append('  <tr>\n')
+        report.append('    <td> {0} </td>\n'.format(rank))
+        report.append('    <td> {0} </td>\n'.format(jrnl_pubs[0].journal_name))
+        report.append('    <td style="text-align: right;"> {0} </td>\n'.format(
+            n_current_pubs))
+
+    return report
+
 def gen_tag_year_report(
         lib, tags_ordered, n_papers_w_tag, years_ordered,
         actually_markdown=False):
@@ -131,22 +163,32 @@ def gen_tag_year_report(
         for tag in tags_ordered:
             papers_for_tag_year = lib.get_pubs(tag=tag, year=year)
             if papers_for_tag_year:
-                style = gen_count_style(len(papers_for_tag_year),
-                                        all_papers_count)
-                count_html = (
-                    '<a href="'
-                    + lib.gen_tag_year_url(tag, year)
-                    + '">' + str(len(papers_for_tag_year)) + '</a>')
+                n_papers_tag_year = len(papers_for_tag_year)
+                style = gen_count_style(
+                    n_papers_tag_year, all_papers_count)
+                tag_year_url = lib.gen_tag_year_url(tag, year)
+                if tag_year_url:
+                    count_html = (
+                        '<a href="{0}"> {1} </a>'.format(
+                            tag_year_url, n_papers_tag_year))
+                else:
+                    count_html = "{0}".format(n_papers_tag_year)
             else:
                 style = ""
                 count_html = ""
             report.append('    <td ' + style + '> ' + count_html + ' </td>\n')
         year_count_style = gen_count_style(
             n_papers_this_year, all_papers_count)
-        report.append(
-            '    <td ' + year_count_style + '> '
-            + '<a href="' + lib.gen_year_url(year) + '">'
-            + str(n_papers_this_year) + '</a> </td>\n')
+        year_url = lib.gen_year_url(year)
+        if year_url:
+            report.append(
+                '    <td {0}> <a href="{1}"> {2} </a></td>\n'.format(
+                    year_count_style, year_url, n_papers_this_year))
+        else:
+            report.append(
+                '    <td {0}> {1} </td>\n'.format(
+                    year_count_style, n_papers_this_year))
+
         report.append('  </tr>\n')
 
     # generate total line at bottom

@@ -17,6 +17,16 @@ def gen_year_report(lib, format_module):
 
     return(u"".join(report))
 
+def gen_journal_report(lib, format_module):
+    """Generate table with one row per journal and a column showing the 
+    number of pubs printed in that journal.
+
+    return report as a text string.
+    """
+    report = format_module.gen_journal_report(lib)
+
+    return(u"".join(report))
+
 def gen_tag_year_report(lib, format_module):
     """Generate table with one row per year, and one column per tag.
     Each cell shows the number of papers a tag was attached to that year.
@@ -109,6 +119,9 @@ def get_args():
             + report_formats.get_formats_as_text_list()
             + "."))
     arg_parser.add_argument(
+        "--journal", required=False, action="store_true",
+        help="Produce table showing number of papers in different journals.")
+    arg_parser.add_argument(
         "--year", required=False, action="store_true",
         help="Produce table showing number of papers published each year.")
     arg_parser.add_argument(
@@ -121,11 +134,6 @@ def get_args():
         help=(
             "Produce table showing number of papers with each year, "
             + "each tag."))
-    arg_parser.add_argument(
-        "--journalyear", required=False, action="store_true",
-        help=(
-            "Produce table showing number of papers in different journals, "
-            + "each year."))
     arg_parser.add_argument(
         "--tagcountdaterange", required=False, action="store_true",
         help=(
@@ -165,11 +173,14 @@ def generate_lib_report(args):
     format_module = report_formats.get_format_module(args.reportformat)
 
     # Generate each report that was requested.
-    if args.tagyear:
-        print(gen_tag_year_report(input_lib, format_module))
+    if args.journal:
+        print(gen_journal_report(input_lib, format_module))
 
     if args.year:
         print(gen_year_report(input_lib, format_module))
+
+    if args.tagyear:
+        print(gen_tag_year_report(input_lib, format_module))
 
     if args.tagcountdaterange:
         print(gen_tag_count_date_range_report(

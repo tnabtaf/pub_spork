@@ -135,6 +135,9 @@ def get_args():
             + report_formats.get_formats_as_text_list()
             + "."))
     arg_parser.add_argument(
+        "--journal", required=False, action="store_true",
+        help="Produce table showing number of papers in different journals.")
+    arg_parser.add_argument(
         "--year", required=False, action="store_true",
         help="Produce table showing number of papers published each year.")
     report_args.add_argument(
@@ -147,11 +150,6 @@ def get_args():
         help=(
             "Produce table showing number of papers with each year, "
             + "each tag."))
-    report_args.add_argument(
-        "--journalyear", required=False, action="store_true",
-        help=(
-            "Produce table showing number of papers in different journals, "
-            + "each year."))
     report_args.add_argument(
         "--tagcountdaterange", required=False, action="store_true",
         help=(

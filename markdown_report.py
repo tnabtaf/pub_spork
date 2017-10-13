@@ -43,10 +43,30 @@ def gen_year_report(lib, years_ordered):
         
     return report
 
+def gen_journal_report(lib):
+    """Generate a report showing the number of published papers in each journal
+    """
+    report = []
+    report.append('| Rank | Journal | # |\n')
+    report.append('| ----: | ---- | ----: |\n')
+    
+    rank = 0
+    jrnl_idx = 0
+    n_prior_pubs = 0
+    for jrnl_pubs in lib.journal_pubs_rank:
+        jrnl_idx += 1
+        n_current_pubs = len(jrnl_pubs)
+        if n_prior_pubs != n_current_pubs:
+            rank = jrnl_idx
+            n_prior_pubs = n_current_pubs
+        report.append('| {0} | {1} | {2} |\n'.format(
+            rank, jrnl_pubs[0].journal_name, n_current_pubs))
+
+    return report
+
 def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     """Generate a tagyear report in Markdown format.
 
-    HA! This is all HTML.
 
     TODO: Combine tags_ordered and n_papers_w_tag into an ordered dictionary
     """
