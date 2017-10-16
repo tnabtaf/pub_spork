@@ -170,7 +170,7 @@ class PubLibrary(publication.PubLibrary):
     def gen_year_url(self, year):
         """Given a year, generate a URL thot shows all papers published in 
         that year.
-        
+
         This can't be done in Zotero.  Return None
         """
         return None

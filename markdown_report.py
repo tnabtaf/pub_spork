@@ -67,7 +67,6 @@ def gen_journal_report(lib):
 def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     """Generate a tagyear report in Markdown format.
 
-
     TODO: Combine tags_ordered and n_papers_w_tag into an ordered dictionary
     """
     return html_report.gen_tag_year_report(

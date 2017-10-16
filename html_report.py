@@ -146,12 +146,13 @@ def gen_tag_year_report(
     report.append('<table class="table">\n')
     report.append('  <tr>\n')
     report.append('    <th> Year </th>\n')
+    report.append('    <th> # Pubs </th>\n')
+    report.append('    <th> </th>\n')  # blank column before starting tags.
     for tag in tags_ordered:
         report.append(
             '    <th> <a href="'
             + lib.gen_tag_url(tag)
             + '">' + tag + '</a> </th>\n')
-    report.append('    <th> # </th>\n')
     report.append('  </tr>\n')
 
     # generate numbers of papers with tag per year
@@ -160,6 +161,20 @@ def gen_tag_year_report(
         report.append('  <tr>\n')
         n_papers_this_year = len(lib.get_pubs(year=year))
         report.append('    <th> ' + year + ' </th>\n')
+
+        year_count_style = gen_count_style(
+            n_papers_this_year, all_papers_count)
+        year_url = lib.gen_year_url(year)
+        if year_url:
+            report.append(
+                '    <td {0}> <a href="{1}"> {2} </a></td>\n'.format(
+                    year_count_style, year_url, n_papers_this_year))
+        else:
+            report.append(
+                '    <td {0}> {1} </td>\n'.format(
+                    year_count_style, n_papers_this_year))
+        report.append('    <td> </td>\n')  # blank column before starting tags.
+
         for tag in tags_ordered:
             papers_for_tag_year = lib.get_pubs(tag=tag, year=year)
             if papers_for_tag_year:
@@ -177,23 +192,17 @@ def gen_tag_year_report(
                 style = ""
                 count_html = ""
             report.append('    <td ' + style + '> ' + count_html + ' </td>\n')
-        year_count_style = gen_count_style(
-            n_papers_this_year, all_papers_count)
-        year_url = lib.gen_year_url(year)
-        if year_url:
-            report.append(
-                '    <td {0}> <a href="{1}"> {2} </a></td>\n'.format(
-                    year_count_style, year_url, n_papers_this_year))
-        else:
-            report.append(
-                '    <td {0}> {1} </td>\n'.format(
-                    year_count_style, n_papers_this_year))
 
         report.append('  </tr>\n')
 
     # generate total line at bottom
     report.append('  <tr>\n')
     report.append('    <th> Total </th>\n')
+    all_papers_style = gen_count_style(all_papers_count, all_papers_count)
+    report.append('    <th ' + all_papers_style + '> '
+                  + str(all_papers_count) + ' </th>\n')
+    report.append('    <th> </th>\n')  # blank column before starting tags.
+
     for tag in tags_ordered:
         tag_count_style = gen_count_style(
             n_papers_w_tag[tag], all_papers_count)
@@ -202,9 +211,6 @@ def gen_tag_year_report(
             + '<a href="' + lib.gen_tag_url(tag) + '">'
             + str(n_papers_w_tag[tag]) + '</a> </th>\n')
 
-    all_papers_style = gen_count_style(all_papers_count, all_papers_count)
-    report.append('    <th ' + all_papers_style + '> '
-                  + str(all_papers_count) + ' </th>\n')
     report.append('  </tr>\n')
     report.append('</table>\n')
     if not actually_markdown:
