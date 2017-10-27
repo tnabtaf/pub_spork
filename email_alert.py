@@ -20,6 +20,8 @@ class Email(object):
     """
     def __init__(self, header, body):
         self.header = header
+        # Subject line is first line; strip "Subject: "
+        self.subject = self.header[0][1].split(b"\r\n")[0][9:].decode("utf-8") 
         self.body = body
         self.body_text = self.body[0][1]
 

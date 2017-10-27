@@ -23,7 +23,15 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     Parse HTML email body from Google Scholar.  The body maybe reporting more
     than one paper.
     """
-    search_start_re = re.compile(r'Scholar Alert: ')
+
+    # The formatting of Google Scholar email alerts changed on 2017/10/04
+    # Before that, toward the top of the email it said:
+    #  Scholar Alert: [ "Galaxy: a platform for large-scale genome analysis" ]
+    # after 2017/10/04, towards the bottom of the email it sometimes says:
+    #  [ "A framework for ENCODE data: large-scale analyses" ] - new results
+    # Sometimes, the only clue is in the email subject line.
+    
+    search_start_re = re.compile(r'(Scholar Alert: )|(\[ \()')
 
     def __init__(self, email):
 
@@ -42,6 +50,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._current_pub_alert = None
 
         self._in_search = False
+        self._search_processed = False
         self._in_title_ink = False
         self._in_title_text = False
         self._in_author_list = False
@@ -58,7 +67,6 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_data(self, data):
 
         data = data.strip()
-
         starting_search = EmailAlert.search_start_re.match(data)
         if starting_search:
             self.search += data
@@ -137,6 +145,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         if tag == "b" and self._in_search:
             self._in_search = False
+            self._search_processed = True
         elif tag == "a" and self._in_title_text:
             self._in_title_text = False
         elif tag == "h3":
@@ -146,6 +155,11 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._text_from_pub_next = True
         elif tag == "font" and self._in_text_from_pub:
             self._in_text_from_pub = False
+            # We are done processing.  If no search was provided,
+            # grab it from the subject line.
+            if not self._search_processed:
+                self.search += " " + self._alert.subject
+                self._search_processed = True
 
         return (None)
 
