@@ -160,10 +160,13 @@ class PubLibrary(publication.PubLibrary):
 
         return None
 
-    def gen_tag_url(self, tag):
+    def gen_tag_url(self, tag, sort_by_add_date=False):
         """Given a tag, generate the URL that shows all papers with that tag.
         """
-        tag_url = self.url + "tag/" + tag
+        tag_url = self.url
+        if sort_by_add_date:
+            tag_url += "order/dateAdded/sort/desc/"
+        tag_url += "tag/" + tag
 
         return tag_url
 

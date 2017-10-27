@@ -86,7 +86,7 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
             tag_markup.append(
                 '| {0} | [{1}]({2}) | '.format(
                     n_papers, tag,
-                    lib.gen_tag_url(tag)))
+                    lib.gen_tag_url(tag, True)))
 
     # Have markup for individual tags; now decide how many go in each column
     n_tags_to_report = len(tag_markup)
