@@ -9,7 +9,7 @@ import email_alert
 import pub_alert
 import publication
 
-SENDER = "WileyOnlineLibrary@wiley.com"
+SENDER = ["WileyOnlineLibrary@wiley.com"]
 
 IS_EMAIL_SOURCE = True
 

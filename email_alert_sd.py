@@ -10,7 +10,7 @@ import publication
 import email_alert
 import pub_alert
 
-SENDER = "salert@prod.sciencedirect.com"
+SENDER = ["salert@prod.sciencedirect.com"]
 
 SD_BASE_URL = "http://www.sciencedirect.com"
 SD_ARTICLE_BASE = "/science/article/pii/"

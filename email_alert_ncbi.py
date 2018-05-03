@@ -10,7 +10,7 @@ import publication
 
 IS_EMAIL_SOURCE = True
 
-SENDER = "efback@ncbi.nlm.nih.gov"
+SENDER = ["efback@ncbi.nlm.nih.gov"]
 
 
 class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):

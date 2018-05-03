@@ -11,7 +11,14 @@ import publication
 
 
 # SENDER = "noreply@isiknowledge.com"
-SENDER = "noreply@webofscience.com"
+# SENDER = "noreply@webofscience.com"
+# SENDER = "noreply@clarivate.com" Starting on 2017/11/01
+
+SENDER = [
+    "noreply@isiknowledge.com",
+    "noreply@webofscience.com",
+    "noreply@clarivate.com"
+    ]
 
 IS_EMAIL_SOURCE = True
 

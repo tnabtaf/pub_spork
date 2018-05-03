@@ -10,7 +10,7 @@ import email_alert
 import pub_alert
 import publication
 
-SENDER = "scholaralerts-noreply@google.com"
+SENDER = ["scholaralerts-noreply@google.com"]
 
 IS_EMAIL_SOURCE = True
 
@@ -30,6 +30,10 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     # after 2017/10/04, towards the bottom of the email it sometimes says:
     #  [ "A framework for ENCODE data: large-scale analyses" ] - new results
     # Sometimes, the only clue is in the email subject line.
+    #
+    # Format changed again around 2018/01.  "Font" tags stopped showing up.  Now
+    # using divs instead. Change caused search string, and text in pub to
+    # disappear.
     
     search_start_re = re.compile(r'(Scholar Alert: )|(\[ \()')
 
@@ -60,6 +64,11 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         # process the HTML body text.
         self.feed(self._email_body_text.decode('utf-8'))
 
+        # If search was not in message body, then pull it from subject line
+        if not self._search_processed:
+            self.search += " " + self._alert.subject
+            self._search_processed = True
+        
         return None
 
     # Parsing Methods
@@ -134,7 +143,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._in_title_link = False
             self._in_title_text = True
 
-        elif tag == "font" and self._text_from_pub_next:
+        elif tag in ["font", "div"] and self._text_from_pub_next:
             self._text_from_pub_next = False
             self._in_text_from_pub = True
             self._current_pub_alert.text_from_pub = ""
@@ -153,13 +162,8 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         elif tag == "div" and self._in_author_list:
             self._in_author_list = False
             self._text_from_pub_next = True
-        elif tag == "font" and self._in_text_from_pub:
+        elif tag in ["font", "div"] and self._in_text_from_pub:
             self._in_text_from_pub = False
-            # We are done processing.  If no search was provided,
-            # grab it from the subject line.
-            if not self._search_processed:
-                self.search += " " + self._alert.subject
-                self._search_processed = True
 
         return (None)
 
