@@ -306,7 +306,7 @@ def is_google_truncated_title(title_text):
 
     These titles end with one or two spaces and an elipsis.
     """
-    return title_text.endswith(" …")
+    return title_text.endswith(" …") # that's a non-breaking space.
 
 
 def trim_google_truncate(title_text):
@@ -314,9 +314,9 @@ def trim_google_truncate(title_text):
     if it is there.  If it isn't there, then return original text.
     """
     new_title = title_text
-    if title_text.endswith("  …"):
+    if title_text.endswith("  …"):
         new_title = title_text[0:-3]
-    elif title_text.endswith(" …"):
+    elif title_text.endswith(" …"):
         new_title = title_text[0:-2]
     return new_title
 

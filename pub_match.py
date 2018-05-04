@@ -5,6 +5,7 @@
 - known pubs / history (but not yet)
 """
 
+import bisect
 import sys
 
 import known_pub_db
@@ -223,6 +224,8 @@ class PubMatchDB(object):
         # Provide quick access via title and DOI
         self._by_canonical_doi = {}
         self._by_canonical_title = {}
+        self.canonical_titles_sorted = []     # use bisect with this.
+
 
         # Procss duplicate pub titles that should be ignored.
         self._ok_dups_by_canonical_title = set()
@@ -267,6 +270,7 @@ class PubMatchDB(object):
                     "  title: {0}\n".format(pub_match._lib_pub.title),
                     file=sys.stderr)
             self._by_canonical_title[pub_match.canonical_title] = pub_match
+            bisect.insort(self.canonical_titles_sorted, pub_match.canonical_title)
 
         return None
 
@@ -282,6 +286,20 @@ class PubMatchDB(object):
             if not pub_match and pa.pub.canonical_title:
                 pub_match = self._by_canonical_title.get(
                     pa.pub.canonical_title)
+            # TODO: need to deal with Google truncate here.
+            # Need to search pub match DB for shorter version
+            # of papers title
+            if not pub_match and publication.is_google_truncated_title(pa.pub.title):
+                # title from alert is Google truncated.
+                # Find an item with a longer title
+                full_title_i = bisect.bisect_left(
+                    self.canonical_titles_sorted, pa.pub.canonical_title)
+                if (full_title_i != len(self.canonical_titles_sorted)
+                    and self.canonical_titles_sorted[full_title_i].startswith(
+                        pa.pub.canonical_title)):
+                    pub_match = self._by_canonical_title(
+                        self.canonical_titles_sorted[full_title_i])
+
             if pub_match:
                 pub_match.add_pub_alert(pa)
             else:

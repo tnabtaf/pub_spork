@@ -7,7 +7,6 @@ of pubs, previous alerts, or a previous version of a known pub database.  They
 are typicallly created when processing new alerts.
 """
 
-import bisect                      # sorted lists and binary search
 import csv
 import sys
 
@@ -105,32 +104,6 @@ class KnownPubDBEntry(object):
     def get_annotation(self):
         return self._row[ANNOTATION]
 
-    def meld(self, new_pub_info):
-        """Given a known pub object that contains potentially new
-        information about this pub, meld the new information into this pub.
-        """
-        my_title = self.get_title()
-        if not my_title:
-            self.set_title(new_pub_info.get_title())
-        elif publication.is_google_truncated_title(my_title):
-            # We already have a title, but it's been shortened by Google.
-            # If we now have a longer title, use it.
-            new_title = new_pub_info.get_title()
-            if new_title and len(new_title) > len(my_title):
-                self.set_title(new_title)
-
-        if not self.get_authors():
-            self.set_authors(new_pub_info.get_authors())
-        if not self.get_doi():
-            self.set_doi(new_pub_info.get_doi())
-        if self.get_annotation() == "":
-            # tend to meld older entries onto more recent ones.
-            # Thus keep older annotation, if we have it.
-            self.set_annotation(new_pub_info.get_annotation())
-
-        # TODO: Figure out if we should be doing something with STATE.
-        return None
-
     @staticmethod
     def gen_separator_entry():
         """Create an entry that is used as a separator between different parts
@@ -155,7 +128,6 @@ class KnownPubDB(object):
         """
         self.by_canonical_title = {}
         self.by_canonical_doi = {}
-        self.canonical_titles_sorted = []     # use bisect with this.
         if known_pubs_file_path:
             tsv_in = open(known_pubs_file_path, "r")
             tsv_reader = csv.DictReader(
@@ -191,7 +163,6 @@ class KnownPubDB(object):
         # everything has a title
         canonical_title = known_pub.get_canonical_title()
         self.by_canonical_title[canonical_title] = known_pub
-        bisect.insort(self.canonical_titles_sorted, canonical_title)
         # not everything has a doi:
         doi = known_pub.get_doi()
         if publication.is_canonical_doi(doi):
@@ -199,102 +170,9 @@ class KnownPubDB(object):
 
         return None
 
-    def get_by_title(self, title):
-        """Given a title string, return the entry for that title.  If no
-        entry exists then return None.
-        """
-        canonical_title = publication.to_canonical(title)
-        known_pub = self.by_canonical_title.get(canonical_title)
-        if not known_pub:
-            if publication.is_google_truncated_title(title):
-                # new title is Google truncated.
-                canonical_trimmed_title = (
-                    publication.trim_google_truncate(canonical_title))
-
-                # Find an item with a longer title
-                full_title_i = bisect.bisect_left(
-                    self.canonical_titles_sorted, canonical_trimmed_title)
-                if (full_title_i != len(self.canonical_titles_sorted)
-                    and self.canonical_titles_sorted[full_title_i].startswith(
-                        canonical_trimmed_title)):
-                    known_pub = self.by_canonical_title[
-                        self.canonical_titles_sorted[full_title_i]]
-
-        return known_pub
-
     def get_all_known_pubs(self):
         """Return all known pubs in no particular oder"""
         return self.by_canonical_title.values()
-
-    def get_match(self, new_pub):
-        """Given a known pub object, see if there is already a record for
-        that pub in the DB. If there is, return it. If not, return None.
-        """
-        # what constitutes a match?
-        # - DOIs match and titles don't contradict.
-        # - One or both DOIs missing, but titles agree.
-        doi = new_pub.get_doi()
-        matched_pub = self.by_canonical_doi.get(doi)
-        if not matched_pub:
-            # Well, dang, didn't match on doi.  Try title
-            matched_pub = self.by_canonical_title.get(
-                new_pub.get_canonical_title())
-            if not matched_pub:
-                # last chance: if either is Google Truncated
-                if (publication.is_google_truncated_title(
-                        new_pub.get_title())):
-                    # new title is Google truncated.
-                    canonical_trimmed_title = (
-                        publication.to_canonical(
-                            publication.trim_google_truncate(
-                                new_pub.get_title())))
-
-                    # Find an item with a longer title'
-                    full_title_i = bisect.bisect_left(
-                        self.canonical_titles_sorted, canonical_trimmed_title)
-                    if full_title_i != len(self.canonical_titles_sorted) and (
-                            self.canonical_titles_sorted[
-                                full_title_i].startswith(
-                                canonical_trimmed_title)):
-                        matched_pub = self.by_canonical_title[
-                            self.canonical_titles_sorted[full_title_i]]
-
-        return matched_pub
-
-    def meld(self, known_pub_in_db, new_pub_info):
-        """Given a known pub in this database, and a known pub object
-        (that is not in this database) that contains potentially new
-        information about the first known pub, meld the new information
-        into the known pub in this db.
-        """
-        old_canonical_title = known_pub_in_db.get_canonical_title()
-        known_pub_in_db.meld(new_pub_info)
-        new_canonical_title = known_pub_in_db.get_canonical_title()
-        if old_canonical_title != new_canonical_title:
-            # Canonical title was changed
-            del self.by_canonical_title[old_canonical_title]
-            self.by_canonical_title[new_canonical_title] = known_pub_in_db
-
-            # delete the the old entry
-            old_i = bisect.bisect_left(
-                self.canonical_titles_sorted, old_canonical_title)
-            if (old_i != len(self.canonical_titles_sorted)
-                and self.canonical_titles_sorted[old_i] ==
-                    old_canonical_title):
-                del self.canonical_titles_sorted[old_i]
-                bisect.insort(
-                    self.canonical_titles_sorted, new_canonical_title)
-            else:
-                raise ValueError(
-                    "Not finding prior value in canonical_titles_sorted.\n"
-                    + "  " + old_canonical_title)
-
-        doi = known_pub_in_db.get_doi()
-        if publication.is_canonical_doi(doi) and (
-                doi not in self.by_canonical_doi):
-            self.by_canonical_doi[doi] = known_pub_in_db
-
-        return None
 
     def add_pubs_from_matchups(self, pub_matchups):
         """Add pubs in the list of matchups to the database (in preparation
