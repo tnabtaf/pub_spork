@@ -297,8 +297,8 @@ class PubMatchDB(object):
                 if (full_title_i != len(self.canonical_titles_sorted)
                     and self.canonical_titles_sorted[full_title_i].startswith(
                         pa.pub.canonical_title)):
-                    pub_match = self._by_canonical_title(
-                        self.canonical_titles_sorted[full_title_i])
+                    pub_match = self._by_canonical_title[
+                        self.canonical_titles_sorted[full_title_i]]
 
             if pub_match:
                 pub_match.add_pub_alert(pa)
