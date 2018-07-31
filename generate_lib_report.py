@@ -66,15 +66,21 @@ def gen_tag_count_date_range_report(
     # Count number of papers with each tag
     n_papers_w_tag = {}
     for tag in tags:
-        n_papers_w_tag[tag] = len(lib.get_pubs(
-            tag=tag, start_entry_date=entry_start_date, end_entry_date=entry_end_date))
+        n_papers_w_tag[tag] = len(
+            lib.get_pubs(
+                tag=tag,
+                start_entry_date=entry_start_date,
+                end_entry_date=entry_end_date))
 
-    # sort tags by paper count, max first
+    # sort tags by paper count, max first, then alphabetical
     tags_in_count_order = [
         tag for tag in
         sorted(
             n_papers_w_tag.keys(),
-            key=lambda key_value: - n_papers_w_tag[key_value])]
+            key=lambda key_value: (
+                "{0} {1}".format(
+                    str(1000000 - n_papers_w_tag[key_value]).zfill(7),
+                    key_value.lower())))]
 
     # time for an ordered dict?  With tags in count order?  I think so.
     tags_ord_dict = collections.OrderedDict()
