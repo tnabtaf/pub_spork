@@ -10,10 +10,10 @@ import publication
 
 IS_EMAIL_SOURCE = True
 
-SENDER = ["efback@ncbi.nlm.nih.gov"]
+SENDERS = ["efback@ncbi.nlm.nih.gov"]
 
 
-class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+class NCBIEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
     All the information in an NCBI emil alert.
 
@@ -150,3 +150,13 @@ def get_canonical_first_author(ncbi_author_list):
     first_author = ncbi_author_list.split(",")[0]
     last_name = first_author.split(" ")[:-1]
     return publication.to_canonical(" ".join(last_name))
+
+
+def sniff_class_for_alert(email):
+    """
+    Given an email alert from NCBI, figure out which version
+    of alert this is and then return the class for that version.
+
+    We only have one version of email alerts from NCBI.
+    """
+    return NCBIEmailAlert

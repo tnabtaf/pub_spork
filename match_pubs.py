@@ -256,7 +256,7 @@ def match_pubs(command_line_args):
         # get every pub_alert from that source
         pub_alerts += (
             connection.get_pub_alerts(
-                connection.module.SENDER, mailbox=args.mailbox,
+                connection.module.SENDERS, mailbox=args.mailbox,
                 since=args.since, before=args.before))
 
     ok_dup_titles = []    # List of titles that it's ok to have duplicates of.

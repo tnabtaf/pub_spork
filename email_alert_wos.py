@@ -14,7 +14,7 @@ import publication
 # SENDER = "noreply@webofscience.com"
 # SENDER = "noreply@clarivate.com" Starting on 2017/11/01
 
-SENDER = [
+SENDERS = [
     "noreply@isiknowledge.com",
     "noreply@webofscience.com",
     "noreply@clarivate.com"
@@ -25,7 +25,7 @@ IS_EMAIL_SOURCE = True
 SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
 
 
-class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
     Parse HTML email body from Web Of Science. The body maybe reporting
@@ -69,7 +69,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._in_query_value = False
         self._in_ref = False
 
-        if EmailAlert.expiration_notice_re.match(body_text):
+        if WoSEmailAlert.expiration_notice_re.match(body_text):
             expiring_search = re.match(
                 r".+?Cited Article:\s+(.+?)\s+Alert Expires:", body_text)
             print("Warning: Search expiring for", file=sys.stderr)
@@ -85,7 +85,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_data(self, data):
 
         data = data.strip()
-        starting = EmailAlert.paper_start_re.match(data)
+        starting = WoSEmailAlert.paper_start_re.match(data)
         if starting:
             # Each paper starts with: "Record m of n. "
             self._current_pub = publication.Pub()
@@ -99,8 +99,8 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         elif data == "Authors:":
             self._in_authors = True
 
-        elif (EmailAlert.cited_article_re.match(data)
-              or EmailAlert.alert_query_re.match(data)):
+        elif (WoSEmailAlert.cited_article_re.match(data)
+              or WoSEmailAlert.alert_query_re.match(data)):
             self._in_query = True
 
         elif data == "Source:":
@@ -161,3 +161,12 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._in_ref = False
 
         return None
+
+def sniff_class_for_alert(email):
+    """
+    Given an email alert from Web of Science, figure out which version
+    of alert this is and then return the class for that version.
+
+    We only have one version of email alerts from Web of Science.
+    """
+    return WoSEmailAlert

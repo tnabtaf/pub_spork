@@ -10,14 +10,14 @@ import email_alert
 import pub_alert
 import publication
 
-SENDER = ["scholaralerts-noreply@google.com"]
+SENDERS = ["scholaralerts-noreply@google.com"]
 
 IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Google Scholar Email"              # used in messages
 
 
-class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Google Scholar Email alert.
 
     Parse HTML email body from Google Scholar.  The body maybe reporting more
@@ -31,8 +31,8 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     #  [ "A framework for ENCODE data: large-scale analyses" ] - new results
     # Sometimes, the only clue is in the email subject line.
     #
-    # Format changed again around 2018/01.  "Font" tags stopped showing up.  Now
-    # using divs instead. Change caused search string, and text in pub to
+    # Format changed again around 2018/01.  "Font" tags stopped showing up.
+    # Now using divs instead. Change caused search string, and text in pub to
     # disappear.
     
     search_start_re = re.compile(r'(Scholar Alert: )|(\[ \()')
@@ -76,7 +76,7 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_data(self, data):
 
         data = data.strip()
-        starting_search = EmailAlert.search_start_re.match(data)
+        starting_search = GSEmailAlert.search_start_re.match(data)
         if starting_search:
             self.search += data
             self._in_search = True
@@ -172,3 +172,17 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         Process tags like IMG and BR that don't have end tags.
         """
         return(None)
+
+
+def sniff_class_for_alert(email):
+    """
+    Given an email alert from Google Scholar, figure out which version
+    of alert this is and then return the class for that version.
+
+    We only have one version of email alerts from Google Scholar.
+
+    Well, sort of.  There have been two format changes since this code
+    was first written, but they were both minor, and could be handled in
+    the context of the existing parser code without too much work.
+    """
+    return GSEmailAlert

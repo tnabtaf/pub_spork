@@ -9,14 +9,14 @@ import email_alert
 import pub_alert
 import publication
 
-SENDER = ["WileyOnlineLibrary@wiley.com"]
+SENDERS = ["WileyOnlineLibrary@wiley.com"]
 
 IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Wiley Online Library"
 
 
-class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
     All the information in a Wiley Saved Search Alert.
 
@@ -147,3 +147,13 @@ class EmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._awaiting_title = True   # in case there are more
 
         return(None)
+
+
+def sniff_class_for_alert(email):
+    """
+    Given an email alert from Wiley, figure out which version
+    of alert this is and then return the class for that version.
+
+    We only have one version of email alerts from Wiley.
+    """
+    return WileyEmailAlert

@@ -20,8 +20,14 @@ class Email(object):
     """
     def __init__(self, header, body):
         self.header = header
-        # Subject line is first line; strip "Subject: "
-        self.subject = self.header[0][1].split(b"\r\n")[0][9:].decode("utf-8") 
+        header_sender_subject = self.header[0][1].decode("utf-8")
+        header_lines = header_sender_subject.split("\r\n")
+        for line in header_lines:
+            if line[0:6] == "From: ":
+                self.sender = line[6:]
+            elif line[0:9] == "Subject: ":
+                self.subject = line[9:]
+
         self.body = body
         self.body_text = self.body[0][1]
 
@@ -87,10 +93,16 @@ class AlertSource(alert.AlertSource):
 
             # _msg_nums is a list of email numbers
             for msg_num in self._msg_nums[0].split():
-                typ, header = self._connection.uid("fetch", msg_num, HEADER_PARTS)
+                typ, header = self._connection.uid(
+                    "fetch", msg_num, HEADER_PARTS)
                 typ, body = self._connection.uid("fetch", msg_num, BODY_PARTS)
                 email = Email(header, body)
-                email_alert = self.module.EmailAlert(email)
+                # Email alerts can have different versions.
+                # Detect which version this is and then invoke the correct
+                # constructor for the version.
+                alert_class = self.module.sniff_class_for_alert(email)
+                email_alert = alert_class(email)
+                # email_alert = self.module.EmailAlert(email)
                 self._current_email_alerts.append(email_alert)
 
                 # Within each email / alert, generate a pub_alert for each pub.
