@@ -5,6 +5,7 @@
 import re
 import base64  # emails from 2018/08 and before
 import quopri  # emails from 2018/08 and later
+import urllib.parse
 import html.parser
 
 import publication
@@ -25,6 +26,7 @@ SD_BASE_URL = "http://www.sciencedirect.com"
 SD_ARTICLE_BASE = "/science/article/pii/"
 SD_ARTICLE_BASE_URL = SD_BASE_URL + SD_ARTICLE_BASE
 # proxy string goes in between base url and article base.
+
 
 IS_EMAIL_SOURCE = True
 
@@ -259,8 +261,17 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             elif tag == "a" and self._in_pub_title:
                 # pub title is the content of the a tag.
                 # pub URL is where the a tag points to.
-                full_url = attrs[0][1]
-                self._current_pub_alert.pub.url = full_url.split("?")[0]
+                full_url = urllib.parse.unquote(attrs[0][1])
+
+                # Current email links look like:
+                # https://cwhib9vv.r.us-east-1.awstrack.me/L0/
+                #   https:%2F%2Fwww.sciencedirect.com%2Fscience%2Farticle%2Fpii%2FB9780128156094000108
+                #   %3Fdgcid=raven_sd_search_email/1/01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
+                #
+                # We want the middle part, the second HTTPS.
+                # Proxy links won't work with full redirect URL
+                minus_redirect = "https" + full_url.split("https")[2]
+                self._current_pub_alert.pub.url = minus_redirect.split("?")[0]
                 self._current_pub_alert.pub.title = ""
 
             elif tag == "p" and self._expecting_pub_type:
