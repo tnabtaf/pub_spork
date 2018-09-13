@@ -37,7 +37,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     I think only the header differs.
     """
 
-    paper_start_re = re.compile(r'Record \d+ of \d+\.')
+    paper_start_re = re.compile(r'Record \d+ of \d+')
     cited_article_re = re.compile(r'.*Cited Article:.*')
     alert_query_re = re.compile(r'.*Alert Query:.*')
     expiration_notice_re = re.compile(
@@ -83,7 +83,6 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         return None
 
     def handle_data(self, data):
-
         data = data.strip()
         starting = WoSEmailAlert.paper_start_re.match(data)
         if starting:

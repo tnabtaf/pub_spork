@@ -7,6 +7,7 @@ import base64  # emails from 2018/08 and before
 import quopri  # emails from 2018/08 and later
 import urllib.parse
 import html.parser
+import sys
 
 import publication
 import email_alert
@@ -27,6 +28,8 @@ SD_ARTICLE_BASE = "/science/article/pii/"
 SD_ARTICLE_BASE_URL = SD_BASE_URL + SD_ARTICLE_BASE
 # proxy string goes in between base url and article base.
 
+CURRENT_SUBJECT_START_RE = re.compile(
+        r'New [sS]earch (Alert|results)')
 
 IS_EMAIL_SOURCE = True
 
@@ -53,7 +56,7 @@ class SDEmailAlert2018AndBefore(
         self._alert = email
         self.pub_alerts = []
         self.search = ""
-        # SD email body content is base64 encoded.  Decode it.
+        # SD email body content is base64 encoded before 2018/08
         self._email_body_text = base64.standard_b64decode(
             self._alert.body_text)
         self._current_pub_alert = None
@@ -67,6 +70,7 @@ class SDEmailAlert2018AndBefore(
         self._in_authors = False
 
         self.feed(self._email_body_text.decode('utf-8'))  # process the HTML
+        #self.feed(self._email_body_text)  # process the HTML
 
         return None
 
@@ -375,10 +379,12 @@ def sniff_class_for_alert(email):
     """
     # Subject or sender can be used to distinguish the two versions.
     # Subject was already parsed out when the Email object was constructed.
-    #  New Subject Line: New Search Alert
+    #  New Subject Line: New [sS]earch (Alert|Results) ...
     #  Old Subject Line: ScienceDirect Search Alert: ....
     # That seems easy...
-    if email.subject == "New Search Alert":
+
+    print(email.subject, file=sys.stderr)
+    if CURRENT_SUBJECT_START_RE.match(email.subject):
         return SDEmailAlert
     else:
         return SDEmailAlert2018AndBefore

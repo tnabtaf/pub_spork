@@ -113,7 +113,7 @@ class AlertSource(alert.AlertSource):
                 else:
                     print("Warning: Alert for search", file=sys.stderr)
                     print(
-                        "  " + email_alert.search + "'",
+                        "  '" + email_alert.search + "'",
                         file=sys.stderr)
                     print(
                         "  from source '" + self.module.SOURCE_NAME_TEXT
