@@ -15,6 +15,15 @@ import known_pub_db
 import html_report
 import pub_match
 
+DOT_PROXY_OPTION = "dot"
+DASH_PROXY_OPTION = "dash"
+
+PROXY_SEPARATOR_OPTIONS = {
+    DOT_PROXY_OPTION: ".",
+    DASH_PROXY_OPTION: "-",
+    }
+
+
 # Globals
 args = None
 lib_module = None
@@ -77,6 +86,12 @@ def get_args():
             + "For Johns Hopkins, for example, this is: "
             + "'.proxy1.library.jhu.edu'"))
     arg_parser.add_argument(
+        "--proxyseparator", required=False,
+        help=(
+            "Some proxies replace dots in the original pub URL with dashes. "
+            + "Default is dot."),
+        choices=PROXY_SEPARATOR_OPTIONS.keys(), default=DOT_PROXY_OPTION)
+    arg_parser.add_argument(
         "--customsearchurl", required=False,
         help=(
             "URL to use for custom searches.  The title of the publication "
@@ -121,19 +136,22 @@ def get_args():
     return args
 
 
-def get_pub_proxy_url(pub_url, proxy):
+def get_pub_proxy_url(pub_url, proxy, proxy_separator):
     """Given the URL to a pub in it's native habitat, return a URL that links
     to the pub through the given proxy.
 
     If the pub's URL is say:
-      "https://thsandthat.org/paper/etc"
+      "https://thisandthat.org/paper/etc"
     This this function will return
-      "https://thsandthat.org" + proxy + "/paper/etc"
+      "https://thisandthat.org." + proxy + "/paper/etc"
+      or
+      "https://thisandthat-org." + proxy + "/paper/etc"
 
     if the pub does not have a URL, then None is returned.
     """
     if pub_url:
         url_parts = pub_url.split("/")
+        url_parts[2] = url_parts[2].replace(".", proxy_separator)
         proxy_url = (
             "/".join(url_parts[0:3]) + proxy + "/" + "/".join(url_parts[3:]))
     else:
@@ -180,7 +198,9 @@ def pub_match_link_list_html(pub_match):
         output.append(
             ('<li> <a href="{0}" target="proxypub">'
              + 'See pub via proxy</a></li>').format(
-                 get_pub_proxy_url(pub_url, args.proxy)))
+                 get_pub_proxy_url(
+                     pub_url, args.proxy,
+                     PROXY_SEPARATOR_OPTIONS[args.proxyseparator])))
 
     # Search for pub in several places
     pub_title = pub_match.get_pub_title()

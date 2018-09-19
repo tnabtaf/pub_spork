@@ -29,13 +29,15 @@ AUTHORS = "authors"
 DOI = "doi"
 STATE = "state"
 ANNOTATION = "annotation"
+QUALIFIER = "qualifier"
 
 COLUMNS = [
     TITLE,                                # Unmunged title
     AUTHORS,                              # In whatever format we get it.
     DOI,                                  # always stored in 10.xxx... format
     STATE,                                # What do we know about this
-    ANNOTATION                            # and whatever else we have to say
+    ANNOTATION,                           # Main comment / reason
+    QUALIFIER,                            # Secondary comment / reason
     ]
 
 
@@ -104,6 +106,13 @@ class KnownPubDBEntry(object):
     def get_annotation(self):
         return self._row[ANNOTATION]
 
+    def set_qualifier(self, qualifier):
+        self._row[QUALIFIER] = qualifier
+        return None
+
+    def get_qualifier(self):
+        return self._row[QUALIFIER]
+
     @staticmethod
     def gen_separator_entry():
         """Create an entry that is used as a separator between different parts
@@ -114,6 +123,7 @@ class KnownPubDBEntry(object):
         entry.set_doi("")
         entry.set_state("SEPARATOR")
         entry.set_annotation("")
+        entry.set_qualifier("")
 
         return entry
 
@@ -153,6 +163,7 @@ class KnownPubDB(object):
             known_pub.set_authors(pub.get_authors())
             known_pub.set_doi(pub.get_doi())
             known_pub.set_annotation("Imported from CUL")
+            known_pub.set_qualifier("")
             known_pub.set_state(STATE_INLIB)
             # we are converted.
             self.add_known_pub(known_pub)

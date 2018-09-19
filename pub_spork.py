@@ -106,6 +106,12 @@ def get_args():
             + "For Johns Hopkins, for example, this is: "
             + "'.proxy1.library.jhu.edu'"))
     match_args.add_argument(
+        "--proxyseparator", required=False,
+        help=(
+            "Some proxies replace dots in the original pub URL with dashes. "
+            + "Default is dots."),
+        choices=['dot', 'dash'], default="dot")
+    match_args.add_argument(
         "--customsearchurl", required=False,
         help=(
             "URL to use for custom searches at your institution.  The title "

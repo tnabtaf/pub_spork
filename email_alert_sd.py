@@ -383,7 +383,6 @@ def sniff_class_for_alert(email):
     #  Old Subject Line: ScienceDirect Search Alert: ....
     # That seems easy...
 
-    print(email.subject, file=sys.stderr)
     if CURRENT_SUBJECT_START_RE.match(email.subject):
         return SDEmailAlert
     else:
@@ -416,13 +415,8 @@ def to_canonical_first_author(sd_alert_authors_text):
     return canonical_first_author
 
 
-def gen_pub_url(pub_url_part, paywall_proxy=None):
+def gen_pub_url(pub_url_part):
     """Given the part of the URL that links to a particular pub, generate the
     full URL for the paper.
-
-    An optional paywall proxy modifier can be included. The proxy looks like:
-      .proxy1.library.jhu.edu
     """
-    if paywall_proxy:
-        return SD_ARTICLE_BASE_URL + paywall_proxy + pub_url_part
     return SD_ARTICLE_BASE_URL + pub_url_part
