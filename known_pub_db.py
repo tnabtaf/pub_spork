@@ -61,6 +61,7 @@ class KnownPubDBEntry(object):
             self.set_doi(None)
             self.set_state(STATE_DONT_KNOW_YET)
             self.set_annotation("")
+            self.set_qualifier("")
 
         return None
 
@@ -201,6 +202,7 @@ class KnownPubDB(object):
             else:
                 known_pub.set_state(STATE_NEW)
             known_pub.set_annotation("")
+            known_pub.set_qualifier("")
             self.add_known_pub(known_pub)
 
         return None

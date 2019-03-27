@@ -101,6 +101,9 @@ Match arguments:
   --proxy PROXY         String to insert in URLs to access pubs through your
                         paywall. For Johns Hopkins, for example, this is:
                         '.proxy1.library.jhu.edu'
+  --proxyseparator {dot,dash}
+                        Some proxies replace dots in the original pub URL with
+                        dashes. Default is dots.
   --customsearchurl CUSTOMSEARCHURL
                         URL to use for custom searches at your institution.
                         The title of the publication will be added to the end
