@@ -49,6 +49,7 @@ class EmailAlert(alert.Alert):
         self.search = None           # str. Search alert is for.
         self._email_body_text = None  # str. body of email.
         self.ref = None              # str. Where pub published.
+        self.warn_if_empty = True    # issue warning if no pubs in alert.
 
         return(None)
 
@@ -110,7 +111,7 @@ class AlertSource(alert.AlertSource):
                 pub_alerts_in_email = len(email_alert.pub_alerts)
                 if pub_alerts_in_email:
                     self._current_pub_alerts += email_alert.pub_alerts
-                else:
+                elif email_alert.warn_if_empty:
                     print("Warning: Alert for search", file=sys.stderr)
                     print(
                         "  '" + email_alert.search + "'",

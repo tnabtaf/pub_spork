@@ -16,6 +16,8 @@ IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Google Scholar Email"              # used in messages
 
+MIN_TRUNCATED_TITLE_LEN = 135  # what's the shortest possible truncated title?
+
 
 class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Google Scholar Email alert.

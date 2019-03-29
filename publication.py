@@ -304,7 +304,7 @@ def is_google_truncated_title(title_text):
     """Given a non-canonical title string, return true if it is a Google
     Scholar truncated title.
 
-    These titles end with one or two spaces and an elipsis.
+    These titles end with a non-breaking space and an ellipsis.
     """
     return title_text.endswith(" …") # that's a non-breaking space.
 

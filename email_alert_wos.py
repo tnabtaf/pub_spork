@@ -50,6 +50,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._alert = email
         self.pub_alerts = []
         self.search = "WoS: "
+        self.warn_if_empty = False  # WoS sends even if nothing to report
 
         body_text = str(self._alert.body_text)
 

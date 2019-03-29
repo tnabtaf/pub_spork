@@ -8,6 +8,7 @@
 import bisect
 import sys
 
+import email_alert_gs
 import known_pub_db
 import publication
 
@@ -289,7 +290,14 @@ class PubMatchDB(object):
             # TODO: need to deal with Google truncate here.
             # Need to search pub match DB for shorter version
             # of papers title
-            if not pub_match and publication.is_google_truncated_title(pa.pub.title):
+            # Not dealing with situation where first title found is the
+            # truncated one, and then the longer one is added later.
+            # Hmm. to deal with that we need to know the minimum length of a
+            # truncated Google title.  Otherwise we'll match is short titles
+            # erroneously.
+            # Deal with this in high-level else below.
+            if (not pub_match and
+                    publication.is_google_truncated_title(pa.pub.title)):
                 # title from alert is Google truncated.
                 # Find an item with a longer title
                 full_title_i = bisect.bisect_left(
@@ -299,7 +307,31 @@ class PubMatchDB(object):
                         pa.pub.canonical_title)):
                     pub_match = self._by_canonical_title[
                         self.canonical_titles_sorted[full_title_i]]
-
+            elif (not pub_match and
+                      len(pa.pub.title) >=
+                          email_alert_gs.MIN_TRUNCATED_TITLE_LEN):
+                # didn't find a match and new alert is not google truncated.
+                # But, the new alert has a long title and could be the same
+                # as a truncated pub title that we already added in this run.
+                # If so, then we already have a pub_match, but it has the
+                # short title in it.
+                # Look for matching, truncated title
+                possible_match_i = bisect.bisect_left(
+                    self.canonical_titles_sorted,
+                    pa.pub.canonical_title[
+                        0:email_alert_gs.MIN_TRUNCATED_TITLE_LEN])
+                if (possible_match_i != len(self.canonical_titles_sorted)
+                    and self.canonical_titles_sorted[possible_match_i].startswith(
+                        pa.pub.canonical_title[
+                            0:email_alert_gs.MIN_TRUNCATED_TITLE_LEN])):
+                    # we have a match, even though we could be wrong.
+                     pub_match = self._by_canonical_title[
+                        self.canonical_titles_sorted[possible_match_i]]
+                     # update everything to use the long, full title.
+                     del self._by_canonical_title[
+                         self.canonical_titles_sorted[possible_match_i]]
+                     self._by_canonical_titles_sorted[pa.pub.canonical_title]
+                     pub_match.canonical_title = pa.pub.canonical_title
             if pub_match:
                 pub_match.add_pub_alert(pa)
             else:
