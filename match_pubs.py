@@ -119,6 +119,10 @@ def get_args():
             "Text file containing duplicate titles that have been reviewed "
             + "and are in fact not duplicate titles.  These will not get "
             + "reported as duplicates."))
+    arg_parser.add_argument(
+        "--curationpage", required=True,
+        help="Where to put the HTML page listing all the pubs.")
+
 
     """
     arg_parser.add_argument(
@@ -293,11 +297,13 @@ def match_pubs(command_line_args):
         known_pubs_db=known_pubs_db, ok_dup_titles=ok_dup_titles)
 
     # Print out any matchups that have new pub_alerts
-    print(html_report.gen_header())
-    print(
+    curation_page = open(command_line_args.curationpage, 'w')
+    curation_page.write(html_report.gen_header())
+    curation_page.write(
         pub_matchups.matchups_with_pub_alerts_to_html(
             pub_match_link_list_html))
-    print(html_report.gen_footer())
+    curation_page.write(html_report.gen_footer())
+    curation_page.close()
 
     if args.knownpubsout:
         # update known pubs DB to include and pubs we didn't know about before.

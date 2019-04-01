@@ -119,6 +119,8 @@ Match arguments:
                         Text file containing duplicate titles that have been
                         reviewed and are in fact not duplicate titles. These
                         will not get reported as duplicates.
+  --curationpage CURATIONPAGE
+                        Where to put the HTML page to use to curate pubs.
 
 Report arguments:
   --reportformat REPORTFORMAT
@@ -187,7 +189,8 @@ The goals are two-fold
     --customsearchurl 'https://catalyst.library.jhu.edu/?utf8=%E2%9C%93&search_field=title&' \
     --proxy .proxy1.library.jhu.edu \
     --knownpubsin KnownPubDBs/known_pubs_db_20170830.tsv \
-    --knownpubsout KnownPubDBs/known_pubs_db_20170918.z.tsv
+    --knownpubsout KnownPubDBs/known_pubs_db_20170918.z.tsv \
+    --curationpage CurationPages/pubs_to_curate_20170918.html
 ```
 
 ### Inputs
@@ -208,7 +211,7 @@ This example takes as input:
 ## Outputs
 
 - An HTML page listing all newly reported publications
-  - This is sent to `stdout`
+  - This is written to `--curationpage`
   - It will contain links to
     - Pubs that have already been added to your library (`--onlineliburl`)
     - Pub searches at a custom URL, typically in your institution's library (`--customsearchurl`)
@@ -226,11 +229,11 @@ This example takes as input:
 
 ## How is my relevant pubs lib updated?
 
-Your *relevant pubs lib* is kept in a reference manager like CiteULike or Zotero.  One of the key goals of PubSpork is to help you create this library.
+Your *relevant pubs lib* is kept in a reference manager like CiteULike or Zotero.  One of the key goals of PubSpork is to help you maintain this library.
 
 How publications are added depends on the reference manager:
 
-### CiteULike
+## CiteULike
 
 First, you'll need to have a CiteULike account.  Set that up, and then make sure you are logged in before you start to walk through the generated HTML page.
 
@@ -238,7 +241,7 @@ For CiteULike libraries, the generated HTML page will include an "Submit to Cite
 
 It's now your job to assign any tags and a priority to new paper.
 
-#### What if CiteULike utterly fails to preload any metadata?
+### What if CiteULike utterly fails to preload any metadata?
 
 This happens more than you would like it to.  What are your options?
 
@@ -267,13 +270,13 @@ CiteULike allows you to directly import RIS or BibTeX and many websites support 
 and then paste the RIS or BibTeX into the form and submit it.  Note that the item may require some manual editing of keywords after entering.
 
 
-#### What if the pub's website does not support RIS or BibTeX export?
+### What if the pub's website does not support RIS or BibTeX export?
 
 Then fall back on Google Scholar.  Use the Search Google Scholar link in the generated HTML to find the pub in Google Scholar.  Every pub in Google Scholar has a cite link that can be used to
 generate minimal BibTeX for the publication.
 
 
-### Zotero
+## Zotero
 
 To add a paper to Zotero, follow the link in the generated HTML page to the paper itself.  If the paper is relevant, then click on the *Zotero Connector* button in your browser.
 
@@ -284,21 +287,21 @@ To add a paper to Zotero, follow the link in the generated HTML page to the pape
 1. Connect your Zotero desktop client to your Zotero account.
 1. Install the Zotero Connector in your web browser
 
-#### Setting up Zotero
+### Setting up Zotero
 
-##### Get a Zotero account 
+#### Get a Zotero account 
 
 If you don't already have a Zotero account, you'll need to [set one up](https://www.zotero.org/user/register/). You'll need to confirm your account through your email.  You can use the free account: you won't need any storage for this work as we don't store PDFs in the Galaxy Group.
 
-##### Install the Zotero client on your computer
+#### Install the Zotero client on your computer
 
 To add publications you'll need to [download and install](https://www.zotero.org/download/) the Zotero Client.  The client is available for Mac, Linux, and Windows.
 
-##### Connect your Zotero desktop client to your Zotero account.
+#### Connect your Zotero desktop client to your Zotero account.
 
 This is in **Preferences** in your client.
 
-##### Install the Zotero Connector in your web browser
+#### Install the Zotero Connector in your web browser
 
 The Zotero Connect adds a button to your browser's menu to send the publication you are currently viewing to the Zotero client on your computer.  The Connector automatically imports a wealth of metadata from most publishers.
 
@@ -306,7 +309,7 @@ The Zotero Connect adds a button to your browser's menu to send the publication 
 
 The [Zotero Connector](https://www.zotero.org/download/) is available for for Chrome, Firefox, Safari, and Opera.  A [bookmarklet](https://www.zotero.org/downloadbookmarklet) is also available for other browsers, tablets, and phones.
 
-#### Adding publications to Zotero
+### Adding publications to Zotero
 
 Clicking on the Zotero Connector in your web browser sends the publication on that page to your desktop Zotero client.  It then does the best job it can at prepopulating the pub's metadata and then automatically adds it to your Zotero library.
 
@@ -339,6 +342,6 @@ To manually update the *known pubs DB*:
 
 # Reporting
 
-The `--report` function generated the selected library report.
+The `--report` function generates the selected library report.
 
 ...

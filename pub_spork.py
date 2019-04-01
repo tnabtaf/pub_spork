@@ -131,6 +131,9 @@ def get_args():
             "Text file containing duplicate titles that have been reviewed "
             + "and are in fact not duplicate titles.  These will not get "
             + "reported as duplicates."))
+    match_args.add_argument(
+        "--curationpage", required=True,
+        help="Where to put the HTML page listing all the pubs.")
 
     report_args = arg_parser.add_argument_group(
         title="Report arguments", description=None)
