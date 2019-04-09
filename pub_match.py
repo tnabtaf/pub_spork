@@ -325,13 +325,16 @@ class PubMatchDB(object):
                         pa.pub.canonical_title[
                             0:email_alert_gs.MIN_TRUNCATED_TITLE_LEN])):
                     # we have a match, even though we could be wrong.
-                     pub_match = self._by_canonical_title[
+                    pub_match = self._by_canonical_title[
                         self.canonical_titles_sorted[possible_match_i]]
-                     # update everything to use the long, full title.
-                     del self._by_canonical_title[
-                         self.canonical_titles_sorted[possible_match_i]]
-                     self._by_canonical_titles_sorted[pa.pub.canonical_title]
-                     pub_match.canonical_title = pa.pub.canonical_title
+                    # update everything to use the long, full title.
+                    del self._by_canonical_title[
+                        self.canonical_titles_sorted[possible_match_i]]
+                    del self.canonical_titles_sorted[possible_match_i]
+                    self._by_canonical_title[pa.pub.canonical_title] = pub_match
+                    bisect.insort(
+                        self.canonical_titles_sorted, pa.pub.canonical_title)
+                    pub_match.canonical_title = pa.pub.canonical_title
             if pub_match:
                 pub_match.add_pub_alert(pa)
             else:

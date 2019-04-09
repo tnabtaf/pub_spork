@@ -346,7 +346,8 @@ The followed by keywords and abstract.
             self._in_doi_section = True
 
         elif self._in_doi:
-            self._current_pub.canonical_doi = data
+            self._current_pub.canonical_doi = publication.to_canonical_doi(
+                data)
             self._in_doi = False
             self._expecting_pub = True
 

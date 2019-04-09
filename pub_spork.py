@@ -132,8 +132,10 @@ def get_args():
             + "and are in fact not duplicate titles.  These will not get "
             + "reported as duplicates."))
     match_args.add_argument(
-        "--curationpage", required=True,
-        help="Where to put the HTML page listing all the pubs.")
+        "--curationpage", required=False,
+        help=(
+            "Where to put the HTML page listing all the pubs. Required for "
+            + " match runs."))
 
     report_args = arg_parser.add_argument_group(
         title="Report arguments", description=None)
