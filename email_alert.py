@@ -64,8 +64,8 @@ class AlertSource(alert.AlertSource):
         """
         # all pub_alerts from this source
         self.module = None
-        context = ssl.create_default_context()
-        self._connection = imaplib.IMAP4_SSL(imaphost, ssl_context=context)
+        #context = ssl.create_default_context()
+        self._connection = imaplib.IMAP4_SSL(imaphost) #, ssl_context=context)
         self._connection.login(account, getpass.getpass())
         self._current_email_alerts = []         # TODO: May not need this.
         self._current_pub_alerts = []

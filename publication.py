@@ -17,8 +17,16 @@ This would be called an abstract class in C.
 
 import inspect
 import re
+import ssl
 import sys
+import urllib.request
 
+SSL_CONTEXT = ssl.SSLContext(ssl.PROTOCOL_TLS)
+
+# Some publishers restrict access if you come in as Python
+HTTP_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; rv:62.0) Gecko/20100101 Firefox/62.0"
+    }
 
 class Pub(object):
     """An identified publication in whatever level of detail we have.
@@ -390,3 +398,23 @@ def to_canonical_doi(given_doi):
             doi_only = doi_lower[doi_start:]
 
     return doi_only
+
+
+def get_potentially_redirected_url(pub_url):
+    """
+    Some URLs (like DOIs) redirect to another URL.  Get that URL, or
+    return the original URL if it does not redirect.  
+    """
+    if pub_url:
+        #print("IN:  {0}".format(pub_url), file=sys.stderr)
+        try:
+            request = urllib.request.Request(
+                pub_url, headers=HTTP_HEADERS)
+            url_response = urllib.request.urlopen(request, context=SSL_CONTEXT)
+            pub_url = url_response.geturl() # different if redirected
+            #print("OUT: {0}".format(pub_url), file=sys.stderr)
+        except:
+            print("Error: {0}".format(sys.exc_info()[0]), file=sys.stderr)
+            print(
+                "  while processing URL: {0}\n".format(pub_url), file=sys.stderr)
+    return pub_url

@@ -14,6 +14,7 @@ import lib_types
 import known_pub_db
 import html_report
 import pub_match
+import publication
 
 DOT_PROXY_OPTION = "dot"
 DASH_PROXY_OPTION = "dash"
@@ -178,7 +179,8 @@ def pub_match_link_list_html(pub_match):
     output.append('<p>Links</p>')
     output.append('<ul>')
 
-    pub_url = pub_match.get_pub_url()
+    pub_url = publication.get_potentially_redirected_url(
+        pub_match.get_pub_url())
     if pub_match.is_new():
         if pub_url:
             # generate link to add pub to library

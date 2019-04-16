@@ -106,14 +106,31 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # http://onlinelibrary.wiley.com/doi/10.1002/spe.2320/abstract?
             #  campaign=wolsavedsearch
             # http://onlinelibrary.wiley.com/doi/10.1002/cpe.3533/abstract
-            base_url = attrs[1][1]
+            # and most recently
+            # http://el.wiley.com/wf/click?upn=-2F4d0Y8aR13lVHu481a...
+            # however, that redirects to
+            # https://onlinelibrary.wiley.com/doi/10.15252/embr.201847227
+            # EXCEPT IT DOES NOT. FROM THIS PROGRAM IT REDIRECTS TO
+            # https://onlinelibrary.wiley.com/action/cookieAbsent
+            #
+            # loop through attrs looking for href
+            for attr in attrs:
+                if attr[0] == "href":
+                    base_url = attr[1]
+                    break
             if base_url[0:4] != "http":
                 # Wiley sometimes forgets leading http://
                 base_url = "http://" + base_url
-            url_parts = base_url.split("/")
-            self._current_pub.canonical_doi = (
-                publication.to_canonical_doi("/".join(url_parts[4:6])))
-            self._current_pub.url = base_url
+            # Now follow given URL to get to URL with embedded DOI.
+            redirected_url = publication.get_potentially_redirected_url(
+                base_url)
+            if redirected_url.split("/")[3] != "doi":
+                self._current_pub.url = base_url
+            else:
+                doi_bits = "/".join(redirectd_url.split("/")[4:6])
+                self._current_pub.canonical_doi = (
+                    publication.to_canonical_doi(doi_bits))
+                self._current_pub.url = redirected_url
         elif self._awaiting_journal and tag == "span":
             self._in_journal = True
             self._awaiting_journal = False
