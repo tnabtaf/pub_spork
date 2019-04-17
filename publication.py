@@ -28,6 +28,12 @@ HTTP_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; rv:62.0) Gecko/20100101 Firefox/62.0"
     }
 
+# Cache any URLs that we have already checked for redirects.  Checking for
+# redirects is expensive. Don't do it more than once for a URL.
+
+redirect_cache = {}
+
+
 class Pub(object):
     """An identified publication in whatever level of detail we have.
 
@@ -405,16 +411,22 @@ def get_potentially_redirected_url(pub_url):
     Some URLs (like DOIs) redirect to another URL.  Get that URL, or
     return the original URL if it does not redirect.  
     """
+    global redirect_cache
     if pub_url:
-        #print("IN:  {0}".format(pub_url), file=sys.stderr)
-        try:
-            request = urllib.request.Request(
-                pub_url, headers=HTTP_HEADERS)
-            url_response = urllib.request.urlopen(request, context=SSL_CONTEXT)
-            pub_url = url_response.geturl() # different if redirected
-            #print("OUT: {0}".format(pub_url), file=sys.stderr)
-        except:
-            print("Error: {0}".format(sys.exc_info()[0]), file=sys.stderr)
-            print(
-                "  while processing URL: {0}\n".format(pub_url), file=sys.stderr)
-    return pub_url
+        if pub_url in redirect_cache:
+            redirect_url = redirect_cache[pub_url]
+        else:
+            try:
+                request = urllib.request.Request(
+                    pub_url, headers=HTTP_HEADERS)
+                url_response = urllib.request.urlopen(
+                    request, context=SSL_CONTEXT)
+                redirect_url = url_response.geturl() # different if redirected
+            except:
+                print("Error: {0}".format(sys.exc_info()[0]), file=sys.stderr)
+                print(
+                    "  while processing URL: {0}\n".format(pub_url),
+                    file=sys.stderr)
+                redirect_url = pub_url
+            redirect_cache[pub_url] = redirect_url
+        return redirect_url

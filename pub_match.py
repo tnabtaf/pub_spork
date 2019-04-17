@@ -176,7 +176,7 @@ class PubMatch(object):
                     pub_url = pub_alert.pub.url
                     break
         return pub_url
-    
+
     def to_html(self):
         """Render the PubMatch in HTML."""
 
