@@ -25,7 +25,7 @@ import publication
 #  https://www.zotero.org/tnabtaf/items/tag/cloud/
 #
 # Particular tag in a group library
-#  
+#
 # AND search for two tags in a user library
 #  https://www.zotero.org/tnabtaf/items/tag/cloud/tag/ultimate
 #
@@ -43,7 +43,7 @@ import publication
 #
 # Does not appear to support AND/OR searches. Can do that through client.
 # Group library in CSV format
-#  
+#
 
 SERVICE_NAME = "Zotero"
 
@@ -66,7 +66,7 @@ class Pub(publication.Pub):
         self._zot_csv = zot_csv
         self.title = self._zot_csv["Title"]
         self.canonical_title = publication.to_canonical(self.title)
-        self.zotero_id = self._zot_csv['\ufeff"Key"'] # BOM won't go away
+        self.zotero_id = self._zot_csv['\ufeff"Key"']  # BOM won't go away
         doi = self._zot_csv.get("DOI")
         if doi:  # should be close to canonical already
             doi = publication.to_canonical_doi(doi)
@@ -122,7 +122,7 @@ class Pub(publication.Pub):
         else:
             canonical_first_author = None
         return canonical_first_author
-        
+
 
 class PubLibrary(publication.PubLibrary):
     """A collection of publications from Zotero."""
@@ -144,7 +144,7 @@ class PubLibrary(publication.PubLibrary):
             parts = url_parts.path.split("/")
             self._zot_group_id = parts[2]
             self._zot_group_name = parts[3]
-        else: # https://www.zotero.org/tnabtaf/items
+        else:  # https://www.zotero.org/tnabtaf/items
             self.is_user_lib = True
             self._zot_username = url_parts.path.split("/")[1]
 
@@ -171,7 +171,7 @@ class PubLibrary(publication.PubLibrary):
         return tag_url
 
     def gen_year_url(self, year):
-        """Given a year, generate a URL thot shows all papers published in 
+        """Given a year, generate a URL thot shows all papers published in
         that year.
 
         This can't be done in Zotero.  Return None
@@ -188,13 +188,13 @@ class PubLibrary(publication.PubLibrary):
 
     def gen_pub_url_in_lib(self, pub):
         """given a pub in this library, generate a link to it online."""
-        
+
         pub_url = self.url + "/itemKey/" + pub.zotero_id
         return pub_url
 
+
 def gen_add_pub_html_link(pub_url):
     """Given the URL of a publication, generate a link to add that pub to
-    Zotero.  
+    Zotero.
     """
     return None
-

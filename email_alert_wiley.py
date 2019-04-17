@@ -124,10 +124,10 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # Now follow given URL to get to URL with embedded DOI.
             redirected_url = publication.get_potentially_redirected_url(
                 base_url)
-            if redirected_url.split("/")[3] != "doi":
+            if redirected_url.split("/")[3] == "doi":
                 self._current_pub.url = base_url
             else:
-                doi_bits = "/".join(redirectd_url.split("/")[4:6])
+                doi_bits = "/".join(redirected_url.split("/")[4:6])
                 self._current_pub.canonical_doi = (
                     publication.to_canonical_doi(doi_bits))
                 self._current_pub.url = redirected_url

@@ -12,6 +12,7 @@ import email_alert_gs
 import known_pub_db
 import publication
 
+
 class PubMatch(object):
     """A pub match is a collection of pubs that we believe are all the same
     pub.
@@ -196,7 +197,7 @@ class PubMatch(object):
             # Helps with diff'ing.
             pub_alerts_sorted = sorted(
                 self._pub_alerts,
-                key=lambda pub_alert: pub_alert.alert.search) 
+                key=lambda pub_alert: pub_alert.alert.search)
             for pa in pub_alerts_sorted:
                 output.append(
                     '<li><strong> {0} </strong></li>'.format(pa.alert.search))
@@ -217,8 +218,9 @@ class PubMatchDB(object):
     individual PubMatch objects.
     """
 
-    def __init__(self, pub_library, pub_alerts, known_pubs_db=None,
-                     ok_dup_titles=None):
+    def __init__(
+            self, pub_library, pub_alerts, known_pubs_db=None,
+            ok_dup_titles=None):
         """Create a PubMatch database, given an input publication library, an
         optional db of known pubs, and a list of new pub alerts.
         """
@@ -226,7 +228,6 @@ class PubMatchDB(object):
         self._by_canonical_doi = {}
         self._by_canonical_title = {}
         self.canonical_titles_sorted = []     # use bisect with this.
-
 
         # Procss duplicate pub titles that should be ignored.
         self._ok_dups_by_canonical_title = set()
@@ -263,7 +264,7 @@ class PubMatchDB(object):
         if pub_match.canonical_title:
             if (pub_match.canonical_title in self._by_canonical_title
                     and pub_match.canonical_title
-                        not in self._ok_dups_by_canonical_title):
+                    not in self._ok_dups_by_canonical_title):
                 print(
                     "Warning: Title in library more than once.",
                     file=sys.stderr)
@@ -271,7 +272,8 @@ class PubMatchDB(object):
                     "  title: {0}\n".format(pub_match._lib_pub.title),
                     file=sys.stderr)
             self._by_canonical_title[pub_match.canonical_title] = pub_match
-            bisect.insort(self.canonical_titles_sorted, pub_match.canonical_title)
+            bisect.insort(
+                self.canonical_titles_sorted, pub_match.canonical_title)
 
         return None
 
@@ -308,8 +310,8 @@ class PubMatchDB(object):
                     pub_match = self._by_canonical_title[
                         self.canonical_titles_sorted[full_title_i]]
             elif (not pub_match and
-                      len(pa.pub.title) >=
-                          email_alert_gs.MIN_TRUNCATED_TITLE_LEN):
+                    len(pa.pub.title) >=
+                    email_alert_gs.MIN_TRUNCATED_TITLE_LEN):
                 # didn't find a match and new alert is not google truncated.
                 # But, the new alert has a long title and could be the same
                 # as a truncated pub title that we already added in this run.
@@ -321,7 +323,8 @@ class PubMatchDB(object):
                     pa.pub.canonical_title[
                         0:email_alert_gs.MIN_TRUNCATED_TITLE_LEN])
                 if (possible_match_i != len(self.canonical_titles_sorted)
-                    and self.canonical_titles_sorted[possible_match_i].startswith(
+                    and
+                    self.canonical_titles_sorted[possible_match_i].startswith(
                         pa.pub.canonical_title[
                             0:email_alert_gs.MIN_TRUNCATED_TITLE_LEN])):
                     # we have a match, even though we could be wrong.
@@ -331,7 +334,8 @@ class PubMatchDB(object):
                     del self._by_canonical_title[
                         self.canonical_titles_sorted[possible_match_i]]
                     del self.canonical_titles_sorted[possible_match_i]
-                    self._by_canonical_title[pa.pub.canonical_title] = pub_match
+                    self._by_canonical_title[pa.pub.canonical_title] = (
+                        pub_match)
                     bisect.insort(
                         self.canonical_titles_sorted, pa.pub.canonical_title)
                     pub_match.canonical_title = pa.pub.canonical_title

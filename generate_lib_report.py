@@ -7,6 +7,7 @@ import collections
 import lib_types
 import report_formats
 
+
 def gen_year_report(lib, format_module):
     """Generate table with one row per year, and another column showing the
     number of papers published that year.
@@ -17,8 +18,9 @@ def gen_year_report(lib, format_module):
 
     return(u"".join(report))
 
+
 def gen_journal_report(lib, format_module):
-    """Generate table with one row per journal and a column showing the 
+    """Generate table with one row per journal and a column showing the
     number of pubs printed in that journal.
 
     return report as a text string.
@@ -26,6 +28,7 @@ def gen_journal_report(lib, format_module):
     report = format_module.gen_journal_report(lib)
 
     return(u"".join(report))
+
 
 def gen_tag_year_report(lib, format_module):
     """Generate table with one row per year, and one column per tag.
@@ -50,6 +53,7 @@ def gen_tag_year_report(lib, format_module):
 
     return(u"".join(report))
 
+
 def gen_tag_count_date_range_report(
         lib, format_module,
         entry_start_date, entry_end_date):
@@ -60,7 +64,7 @@ def gen_tag_count_date_range_report(
 
     Return report as a text string.
     """
-    
+
     # Preprocess. Need to know order of tags
     tags = lib.get_tags()
     # Count number of papers with each tag
@@ -157,7 +161,7 @@ def get_args():
         help=(
             "--tagcountdaterange will report on papers with entry dates "
             + "less than or equal to this date. Example: 2017-01-29"))
-    report_args.add_argument(
+    arg_parser.add_argument(
         "--onlythesetags", required=False,
         help=(
             "Can either generate a report about all tags in the library, "
@@ -166,6 +170,7 @@ def get_args():
             + "List one tag per line."))
 
     return(arg_parser.parse_args())
+
 
 def generate_lib_report(args):
 
@@ -190,10 +195,11 @@ def generate_lib_report(args):
 
     if args.tagcountdaterange:
         print(gen_tag_count_date_range_report(
-            input_lib, format_module, 
+            input_lib, format_module,
             args.entrystartdate, args.entryenddate))
 
     return None
+
 
 # MAIN
 if __name__ == '__main__':

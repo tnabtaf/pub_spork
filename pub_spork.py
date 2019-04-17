@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
-"""PubSpork is a utility that helps you manage and track publications.  
+"""PubSpork is a utility that helps you manage and track publications.
 
-It was created by @tnabtaf to help track papers that reference 
+It was created by @tnabtaf to help track papers that reference
 @galaxyproject.  However, it should be useful to manage any pubs that
 reference anything.
 
@@ -13,9 +13,9 @@ import argparse
 import alert_sources
 import lib_types
 import report_formats
-
 import generate_lib_report
 import match_pubs
+
 
 def get_args():
     """Parse and return the command line arguments."""
@@ -27,7 +27,7 @@ def get_args():
             + "1) Supporting curation of newly reported publications. "
             + "2) Library reporting. "
             + "**Supporting Curation**: "
-            + "The --match function is used to combine: " 
+            + "The --match function is used to combine: "
             + "  a) a DB of publications we have already looked at. "
             + "  b) a library (currently in Zotero or CiteULike) of pubs "
             + "     that have already been identified as relevant. "
@@ -42,7 +42,7 @@ def get_args():
         help=(
             "Match newly reported pubs with each other and with optional "
             + "libraries of already curated pubs. Generates an HTML page "
-            + "that to use to curate the new pubs.")) 
+            + "that to use to curate the new pubs."))
     arg_parser.add_argument(
         "--report", required=False, action="store_true",
         help=(
@@ -186,7 +186,6 @@ def get_args():
             + "then only the tags listed in this file will be reported on. "
             + "List one tag per line."))
 
-    
     args = arg_parser.parse_args()
 
     if args.match:
@@ -195,9 +194,10 @@ def get_args():
 
     return args
 
+
 args = get_args()
 
 if args.match:
-     match_pubs.match_pubs(args)
+    match_pubs.match_pubs(args)
 elif args.report:
     generate_lib_report.generate_lib_report(args)

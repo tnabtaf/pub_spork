@@ -2,7 +2,7 @@
 """Superclass for email pub alerts.
 """
 
-import ssl
+# import ssl
 import sys
 import getpass
 import imaplib                            # Email protocol
@@ -64,8 +64,8 @@ class AlertSource(alert.AlertSource):
         """
         # all pub_alerts from this source
         self.module = None
-        #context = ssl.create_default_context()
-        self._connection = imaplib.IMAP4_SSL(imaphost) #, ssl_context=context)
+        # context = ssl.create_default_context()
+        self._connection = imaplib.IMAP4_SSL(imaphost)  # ,ssl_context=context)
         self._connection.login(account, getpass.getpass())
         self._current_email_alerts = []         # TODO: May not need this.
         self._current_pub_alerts = []
@@ -75,12 +75,12 @@ class AlertSource(alert.AlertSource):
 
     def get_pub_alerts(self, senders, mailbox, since, before):
         """
-        Given the name of a mailbox, an array of sender email addresses, 
-        a start date, and an end date, return all the pub_alerts from that 
+        Given the name of a mailbox, an array of sender email addresses,
+        a start date, and an end date, return all the pub_alerts from that
         source.
 
-        Senders is an array because providers change the sending email 
-        address sometimes.  Using all known email addresses, instead of 
+        Senders is an array because providers change the sending email
+        address sometimes.  Using all known email addresses, instead of
         just the latest one, allows us to scan as far back as we can.
         """
 
@@ -129,6 +129,7 @@ class AlertSource(alert.AlertSource):
                 + self.module.SOURCE_NAME_TEXT + "\n")
 
         return iter(self._current_pub_alerts)
+
 
 def _build_imap_search_string(
         sender=None,

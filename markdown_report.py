@@ -11,6 +11,7 @@ import html_report
 
 N_TAG_COLUMN_GROUPS = 4   # create report with n tags and n counts across
 
+
 def gen_header():
     """Generate a header for Markdown.  Markdown does not have a header."""
     return ""
@@ -19,6 +20,7 @@ def gen_header():
 def gen_footer():
     """Generate a footer for Markdown.  Markdown does not have a footer."""
     return ""
+
 
 def gen_year_report(lib, years_ordered):
     """Generate a year report showing the number of published papers in each
@@ -40,8 +42,9 @@ def gen_year_report(lib, years_ordered):
 
     # Total
     report.append('| Total | {0} |\n'.format(n_papers_across_years))
-        
+
     return report
+
 
 def gen_journal_report(lib):
     """Generate a report showing the number of published papers in each journal
@@ -49,7 +52,7 @@ def gen_journal_report(lib):
     report = []
     report.append('| Rank | Journal | # |\n')
     report.append('| ----: | ---- | ----: |\n')
-    
+
     rank = 0
     jrnl_idx = 0
     n_prior_pubs = 0
@@ -64,6 +67,7 @@ def gen_journal_report(lib):
 
     return report
 
+
 def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     """Generate a tagyear report in Markdown format.
 
@@ -72,6 +76,7 @@ def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     return html_report.gen_tag_year_report(
         lib, tags_ordered, n_papers_w_tag, years_ordered,
         actually_markdown=True)
+
 
 def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
                                     lib, start_date, end_date):
@@ -118,5 +123,5 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
             else:
                 report.append('| | | ')
         report.append('\n')
- 
+
     return(u"".join(report))

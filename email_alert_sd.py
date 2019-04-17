@@ -7,7 +7,6 @@ import base64  # emails from 2018/08 and before
 import quopri  # emails from 2018/08 and later
 import urllib.parse
 import html.parser
-import sys
 
 import publication
 import email_alert
@@ -70,7 +69,7 @@ class SDEmailAlert2018AndBefore(
         self._in_authors = False
 
         self.feed(self._email_body_text.decode('utf-8'))  # process the HTML
-        #self.feed(self._email_body_text)  # process the HTML
+        # self.feed(self._email_body_text)  # process the HTML
 
         return None
 
@@ -177,6 +176,7 @@ class SDEmailAlert2018AndBefore(
                     self._current_pub_alert.pub.authors + " "))
         return None
 
+
 class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
     All the information in a Science Direct Email alert from August 2018 and
@@ -208,7 +208,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._in_ref = False
         self._expecting_authors = False
         self._in_authors = False
-        
+
         self.feed(self._email_body_text)  # process the HTML
 
         return None
@@ -218,39 +218,48 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
         """
         The search is wrapped in an H1:
-          <h1 style="color:#505050;font-size:27px;line-height:40px;font-family:Arial,Helvetica">
+          <h1 style="color:#505050;font-size:27px;line-height:40px;\
+font-family:Arial,Helvetica">
             Showing top results for search alert:<br/>GalaxyProject.org
           </h1>
         There are other H1's so need to also match on data text.
 
-        Everything of interest about a matched pub is in a TD followed by an H2.
+        Everything of interest about a matched pub is in a TD followed by
+        an H2.
         There are many TD's but only paper alerts are have H2's
           <td align="left" valign="top">
-            <h2 style="color:#505050;font-size:23px;line-height:32px;font-family:Georgia,Arial,Helvetica">
-              <a href="https://www.sciencedirect.com/science/article/pii/S0025619618304026?dgcid=raven_sd_search_email" 
-                 style="word-wrap:break-word;color:#007398;font-weight:none;text-decoration:none">
+            <h2 style="color:#505050;font-size:23px;line-height:32px;\
+font-family:Georgia,Arial,Helvetica">
+              <a href="https://www.sciencedirect.com/science/article/pii/\
+S0025619618304026?dgcid=raven_sd_search_email"
+                 style="word-wrap:break-word;color:#007398;font-weight:none;\
+text-decoration:none">
                 C3 Glomerulopathy: Ten Years' Experience at Mayo Clinic
               </a>
             </h2>
-            <p align="left" style="color:#505050;font-size:15px;line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
+            <p align="left" style="color:#505050;font-size:15px;\
+line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
               <span style="font-style:italic">
               </span>Research article
             </p>
-            <p align="left" style="color:#848484;font-size:15px;line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
+            <p align="left" style="color:#848484;font-size:15px;\
+line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
               <span style="color:#848484">
-                <span>Mayo Clinic Proceedings, Volume 93, Issue 8, Pages 991-1008, 
+                <span>Mayo Clinic Proceedings, Volume 93, Issue 8, \
+Pages 991-1008,
                 </span>
               </span>
             </p>
-            <p align="left" style="color:#505050;font-size:15px;line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
-              Aishwarya Ravindran, Fernando C. Fervenza, Richard J. H. Smith, ... Sanjeev Sethi
+            <p align="left" style="color:#505050;font-size:15px;\
+line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
+              Aishwarya Ravindran, Fernando C. Fervenza, ... Sanjeev Sethi
             </p>
           </td>
         """
         if self._in_html_part:
             if tag == "td":
                 self._in_td_depth += 1
-            elif tag == "h1" :
+            elif tag == "h1":
                 self._in_h1 = True
             elif tag == "h2" and self._in_td_depth:
                 # everything in this TD is about the publication.
@@ -310,7 +319,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
                         if item.split(" ")[1].strip() == "text/html":
                             self._in_html_part = True
                             break
-        
+
         elif self._in_html_part:
             if self._in_h1 and data == "Showing top results for search alert:":
                 self._in_search = True
@@ -388,7 +397,7 @@ def sniff_class_for_alert(email):
     else:
         return SDEmailAlert2018AndBefore
 
-    
+
 def to_canonical_first_author(sd_alert_authors_text):
     """Convert an SD email alert author list to a canonical first
     author name.

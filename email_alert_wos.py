@@ -26,9 +26,10 @@ SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
 
 CURRENT_BODY_TEXT_START_TAG_RE = re.compile(
         r"[b'\\rn]*<!DOCTYPE html>")
-    
 
-class WoSEmailAlert2018AndBefore(email_alert.EmailAlert, html.parser.HTMLParser):
+
+class WoSEmailAlert2018AndBefore(
+        email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
     Parse HTML email body from Web Of Science. The body maybe reporting
@@ -173,7 +174,6 @@ class WoSEmailAlert2018AndBefore(email_alert.EmailAlert, html.parser.HTMLParser)
         return None
 
 
-
 class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
@@ -194,30 +194,49 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
       cited n times | has n new records
       </span> end
       Record m of n
-      <a class="smallV110" href="http://gateway.webofknowledge.com/gateway/Gateway.cgi?GWVersion=2&amp;SrcAuth=Alerting&amp;SrcApp=Alerting&amp;DestApp=WOS&amp;DestLinkType=FullRecord&amp;UT=WOS:000460742800042"
+      <a class="smallV110" href="http://gateway.webofknowledge.com/gateway/\
+Gateway.cgi?GWVersion=2&amp;SrcAuth=Alerting&amp;SrcApp=Alerting&amp;\
+DestApp=WOS&amp;DestLinkType=FullRecord&amp;UT=WOS:000460742800042"
       - which is the only place that smallV110 appears
-      - that URL is not useful.  Requires a login, and points to WOS, not the paper
-      Pipeline for the Rapid Development of Cytogenetic Markers Using Genomic Data of Related Species
+      - that URL is not useful.  Requires a login, and points to WOS, not \
+the paper
+      Pipeline for the Rapid Development of Cytogenetic Markers Using Genomic \
+Data of Related Species
       </a>
       Authors:
       <span start
       Author list
       </span end
-      <value>GENES</value> 
+      <value>GENES</value>
       then pretty much all the data between the next td can be saved as text.
-      <td style="max-width: 760px; display: block; clear: both; font-family: arial; padding-left: 20px; padding-right: 20px; font-size: 12px; color: #666666" class="container container-padding"><span style="color: #666666; font-weight: 600;">Volume: </span><span style="color: #666666; font-weight: normal;">
-<value>10</value> &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #666666; font-weight: 600;">Issue: </span><span style="color: #666666; font-weight: normal;"> 
-<value>2</value> &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #666666; font-weight: 600;">Published: </span><span style="color: #666666; font-weight: normal;">
+      <td style="max-width: 760px; display: block; clear: both; \
+font-family: arial; padding-left: 20px; padding-right: 20px; font-size: 12px; \
+color: #666666" class="container container-padding"><span \
+style="color: #666666; font-weight: 600;">Volume: </span><span s\
+tyle="color: #666666; font-weight: normal;">
+<value>10</value> &nbsp;&nbsp;&nbsp;&nbsp;</span><span \
+style="color: #666666; font-weight: 600;">Issue: </span><span \
+style="color: #666666; font-weight: normal;">
+<value>2</value> &nbsp;&nbsp;&nbsp;&nbsp;</span><span \
+style="color: #666666; \
+font-weight: 600;">Published: </span><span style="color: #666666; \
+font-weight: normal;">
 <value>FEB 2019</value> &nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span style="font-weight: 600; color:#666666">Language: 
-</span><span style="color:#666666">English</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span style="font-weight: 600; color:#666666">Language:
+</span><span style="color:#666666">English</span> \
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-<span style="font-weight: 600; color:#666666">Document type: 
+<span style="font-weight: 600; color:#666666">Document type:
 </span><span style="color:#666666">Article</span></td>
     next td contains the DOI:
-    <td style="max-width: 760px; display: block; clear: both;  background-color: #ffffff; font-size: 12px; font-family: arial; padding-left: 20px; padding-right: 20px;" bgcolor="#ffffff" class="container container-padding"><span style="color: #666666; font-weight: 600;">DOI:</span><span style="color: #666666;">
-<a href="http://dx.doi.org/10.3390/genes10020113">10.3390/genes10020113</a> </span></td>
-The followed by keywords and abstract.
+    <td style="max-width: 760px; display: block; clear: both; \
+background-color: #ffffff; font-size: 12px; font-family: arial; \
+padding-left: 20px; padding-right: 20px;" bgcolor="#ffffff" \
+class="container container-padding"><span style="color: #666666; \
+font-weight: 600;">DOI:</span><span style="color: #666666;">
+<a href="http://dx.doi.org/10.3390/genes10020113">10.3390/genes10020113</a> \
+</span></td>
+Then followed by keywords and abstract.
     """
 
     expiration_notice_re = re.compile(
@@ -225,7 +244,7 @@ The followed by keywords and abstract.
     search_preface_re = re.compile(r'(Your article|Your saved search for) "')
     paper_start_re = re.compile(r'Record \d+ of \d+')
     count_re = re.compile(r'(cited|has) (\d+) (times|new records)')
-    
+
     cited_article_re = re.compile(r'.*Cited Article:.*')
     alert_query_re = re.compile(r'.*Alert Query:.*')
 
@@ -273,7 +292,8 @@ The followed by keywords and abstract.
 
         if WoSEmailAlert.expiration_notice_re.match(body_text):
             expiring_search = re.match(
-                r'.+?Your alert for <span.+?>&quot;\s*(.+?)&quot;', body_text) 
+                r'.+?Your alert for <span.+?>&quot;\s*(.+?)&quot;',
+                body_text)
             print("Warning: Search expiring for", file=sys.stderr)
             print(
                 "  WOS: {0}\n".format(expiring_search.group(1)),
@@ -334,9 +354,9 @@ The followed by keywords and abstract.
             self._expecting_journal = True
 
         elif self._in_journal:
-             self._current_pub.ref = data
-             self._in_journal = False
-             self._expecting_citation = True
+            self._current_pub.ref = data
+            self._in_journal = False
+            self._expecting_citation = True
 
         elif self._in_citation:
             self._current_pub.ref += ", " + data
@@ -379,7 +399,7 @@ The followed by keywords and abstract.
         elif self._expecting_citation and tag == "td":
             self._expecting_citation = False
             self._in_citation = True
-        
+
         elif self._in_doi_section and tag == "a":
             self._current_pub.url = attrs[0][1]
             self._in_doi_section = False
@@ -408,12 +428,13 @@ The followed by keywords and abstract.
 
         return None
 
+
 def sniff_class_for_alert(email):
     """
     Given an email alert from Web of Science, figure out which version
     of alert this is and then return the class for that version.
 
-    Emails from WOS changed formats in mid-August, 2018.  
+    Emails from WOS changed formats in mid-August, 2018.
     Detect which format we are dealing with.
 
     Subject lines are in same format.

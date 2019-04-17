@@ -100,6 +100,7 @@ def gen_year_report(
 
     return report
 
+
 def gen_journal_report(lib, actually_markdown=False):
     """Generate a report listing all journals, ranked by number of pubs,
     in HTML format.
@@ -131,6 +132,7 @@ def gen_journal_report(lib, actually_markdown=False):
             n_current_pubs))
 
     return report
+
 
 def gen_tag_year_report(
         lib, tags_ordered, n_papers_w_tag, years_ordered,
@@ -218,6 +220,7 @@ def gen_tag_year_report(
 
     return report
 
+
 def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
                                     lib, start_date, end_date):
     """Generate a table with with each entry showing the tag name,
@@ -227,6 +230,6 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
     However, HTML format is not yet supported for this report, so just throw
     an error.
     """
-    raise NotImplementedError (
+    raise NotImplementedError(
         "gen_tag_count_date_range_report not yet implemented for report "
         + "format HTML")

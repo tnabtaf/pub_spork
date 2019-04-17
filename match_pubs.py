@@ -124,7 +124,6 @@ def get_args():
         "--curationpage", required=True,
         help="Where to put the HTML page listing all the pubs.")
 
-
     """
     arg_parser.add_argument(
         "--verify1stauthors", required=False,
@@ -244,6 +243,7 @@ def pub_match_link_list_html(pub_match):
 
     return output
 
+
 def match_pubs(command_line_args):
     """Match up pubs across all provided sources."""
     global lib_module, input_lib, args
@@ -318,6 +318,7 @@ def match_pubs(command_line_args):
         known_pubs_db.write_db_to_file(args.knownpubsout)
 
     return None
+
 
 # MAIN
 if __name__ == '__main__':

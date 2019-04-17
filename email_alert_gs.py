@@ -36,7 +36,7 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     # Format changed again around 2018/01.  "Font" tags stopped showing up.
     # Now using divs instead. Change caused search string, and text in pub to
     # disappear.
-    
+
     search_start_re = re.compile(r'(Scholar Alert: )|(\[ \()')
 
     def __init__(self, email):
@@ -70,7 +70,7 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         if not self._search_processed:
             self.search += " " + self._alert.subject
             self._search_processed = True
-        
+
         return None
 
     # Parsing Methods

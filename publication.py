@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
-"""Publication objects.
+"""
+Publication objects.
 
 A publication object describes an identified publication in whatever level
 of detail we have.
@@ -25,7 +26,9 @@ SSL_CONTEXT = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
 # Some publishers restrict access if you come in as Python
 HTTP_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; rv:62.0) Gecko/20100101 Firefox/62.0"
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; "
+        + "rv:62.0) Gecko/20100101 Firefox/62.0")
     }
 
 # Cache any URLs that we have already checked for redirects.  Checking for
@@ -63,8 +66,8 @@ class Pub(object):
         self.year = None                  # Publication year
         # TODO: maybe this should be a set?
         self.tags = None                  # List of Keywords for this pub
-        self.journal_name = None          # Name if from a journal 
-        self.canonical_journal = None     #  None if not from a journal
+        self.journal_name = None          # Name if from a journal
+        self.canonical_journal = None     # None if not from a journal
         self.ref = None                   # reference to pub
         self.entry_date = None            # Date added to library.
 
@@ -159,8 +162,8 @@ class PubLibrary(object):
     def prep_for_reports(self, only_these_tags_path=None):
         """Called by reporting programs to setup a bunch of quick-access
         data structures for reporting about the library.
-        """            
-        
+        """
+
         # These are replaced by frozensets at the end.
         by_year = {}          # unordered array of papers from that year
         by_tag = {}           # value is unordered array of papers w/ tag
@@ -320,7 +323,7 @@ def is_google_truncated_title(title_text):
 
     These titles end with a non-breaking space and an ellipsis.
     """
-    return title_text.endswith(" …") # that's a non-breaking space.
+    return title_text.endswith(" …")  # that's a non-breaking space.
 
 
 def trim_google_truncate(title_text):
@@ -409,7 +412,7 @@ def to_canonical_doi(given_doi):
 def get_potentially_redirected_url(pub_url):
     """
     Some URLs (like DOIs) redirect to another URL.  Get that URL, or
-    return the original URL if it does not redirect.  
+    return the original URL if it does not redirect.
     """
     global redirect_cache
     if pub_url:
@@ -421,7 +424,7 @@ def get_potentially_redirected_url(pub_url):
                     pub_url, headers=HTTP_HEADERS)
                 url_response = urllib.request.urlopen(
                     request, context=SSL_CONTEXT)
-                redirect_url = url_response.geturl() # different if redirected
+                redirect_url = url_response.geturl()  # different if redirected
             except:
                 print("Error: {0}".format(sys.exc_info()[0]), file=sys.stderr)
                 print(

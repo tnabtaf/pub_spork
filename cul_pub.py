@@ -2,6 +2,8 @@
 """CiteULike Publication objects.
 
 Defines publications from CiteULike service.
+
+This code is not highly maintained!!!!
 """
 
 import json
@@ -180,10 +182,10 @@ class PubLibrary(publication.PubLibrary):
         return tag_year_url
 
     def gen_tag_url(self, tag):
-        """Given the base URL of a CUL library, e.g., 
+        """Given the base URL of a CUL library, e.g.,
         http://www.citeulike.org/group/16008/library
 
-        and a tag used in that library, generate a link to all pubs with that 
+        and a tag used in that library, generate a link to all pubs with that
         tag.
         """
         if self.is_user_lib:
@@ -205,11 +207,11 @@ class PubLibrary(publication.PubLibrary):
 
     def gen_pub_url_in_lib(self, pub):
         """given a pub in this library, generate a link to it online."""
-        
+
         pub_url = self.url + "/article/" + pub.cul_id
         return pub_url
 
-    
+
 def gen_add_pub_html_link(pub_url):
     """Given the URL of a publication, generate a link to add that pub to
     CiteULike.
@@ -218,5 +220,3 @@ def gen_add_pub_html_link(pub_url):
         '<a href="http://www.citeulike.org/posturl?url={0}" '
         + 'target="citeulike-add">Submit pub to CiteULike</a>').format(
             pub_url)             # TODO: Does this need to be URLencoded?
-
-
