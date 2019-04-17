@@ -425,7 +425,7 @@ def get_potentially_redirected_url(pub_url):
                 url_response = urllib.request.urlopen(
                     request, context=SSL_CONTEXT)
                 redirect_url = url_response.geturl()  # different if redirected
-            except:
+            except BaseException:
                 print("Error: {0}".format(sys.exc_info()[0]), file=sys.stderr)
                 print(
                     "  while processing URL: {0}\n".format(pub_url),

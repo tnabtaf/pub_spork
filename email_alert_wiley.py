@@ -121,16 +121,11 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             if base_url[0:4] != "http":
                 # Wiley sometimes forgets leading http://
                 base_url = "http://" + base_url
-            # Now follow given URL to get to URL with embedded DOI.
-            redirected_url = publication.get_potentially_redirected_url(
-                base_url)
-            if redirected_url.split("/")[3] == "doi":
-                self._current_pub.url = base_url
-            else:
-                doi_bits = "/".join(redirected_url.split("/")[4:6])
+            self._current_pub.url = base_url
+            if base_url.split("/")[3] == "doi":
+                doi_bits = "/".join(base_url.split("/")[4:6])
                 self._current_pub.canonical_doi = (
                     publication.to_canonical_doi(doi_bits))
-                self._current_pub.url = redirected_url
         elif self._awaiting_journal and tag == "span":
             self._in_journal = True
             self._awaiting_journal = False

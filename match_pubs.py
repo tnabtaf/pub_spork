@@ -178,8 +178,7 @@ def pub_match_link_list_html(pub_match):
     output.append('<p>Links</p>')
     output.append('<ul>')
 
-    pub_url = publication.get_potentially_redirected_url(
-        pub_match.get_pub_url())
+    pub_url = pub_match.get_pub_url()
     if pub_match.is_new():
         if pub_url:
             # generate link to add pub to library

@@ -401,7 +401,13 @@ Then followed by keywords and abstract.
             self._in_citation = True
 
         elif self._in_doi_section and tag == "a":
-            self._current_pub.url = attrs[0][1]
+            pub_url = attrs[0][1]
+            self._current_pub.canonical_doi = publication.to_canonical_doi(
+                pub_url)
+            # replace doi URL with what it redirects to.  This enables the
+            # proxy to work.
+            self._current_pub.url = publication.get_potentially_redirected_url(
+                pub_url)
             self._in_doi_section = False
             self._in_doi = True
 
