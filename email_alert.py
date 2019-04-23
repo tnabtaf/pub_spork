@@ -42,8 +42,8 @@ class EmailAlert(alert.Alert):
     Should be overridden by subclass.
     """
     def __init__(self):
-        """Init method for EmailAlerts.  This is an abstract method that
-        just document attributes.
+        """Init method for EmailAlerts.  Mainly documents attributes,
+        but also sets some defaults.
         """
         self._alert = None           # Alert
         self.pub_alerts = None       # PubAlert. List generated from this alert

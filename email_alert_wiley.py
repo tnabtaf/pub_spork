@@ -15,6 +15,9 @@ IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Wiley Online Library"
 
+# Format changed slightly in late 2018.
+SEARCH_COMING_2018 = "Saved Search Alert result notifications for"
+SEARCH_COMING_2019 = "Your criteria:"
 
 class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
@@ -26,6 +29,7 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def __init__(self, email):
 
         html.parser.HTMLParser.__init__(self)
+        email_alert.EmailAlert.__init__(self)
         self._alert = email
         self.pub_alerts = []
         self.search = "Wiley Online Library: "
@@ -37,6 +41,8 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         self._current_pub = None
 
+        self._parsing = False
+        self._search_coming = False
         self._in_search = False
         self._awaiting_title = False
         self._in_title = False
@@ -54,7 +60,11 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         data = data.strip()
 
-        if self._in_search:
+        if self._parsing and data == SEARCH_COMING_2018:
+            self._search_coming = True
+        elif self._parsing and data == SEARCH_COMING_2019:
+            self._search_coming = True
+        elif self._in_search:
             self.search += data
         elif self._in_title:
             self._current_pub.set_title(self._current_pub.title + data)
@@ -86,16 +96,17 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
 
         if tag == "html":
-            self.parsing = True
-        elif self.parsing and tag == "strong":
+            self._parsing = True
+        elif self._search_coming and tag == "strong":  # 2018
+            self._search_coming = False
             self._in_search = True
-        elif (self.parsing
+        elif (self._parsing
               and tag == "a"
               and len(attrs) > 2
               and attrs[2][1] == "http://journalshelp.wiley.com"):
-            self.parsing = False          # Done looking at input.
+            self._parsing = False          # Done looking at input.
             self._awaiting_title = False
-        elif self.parsing and self._awaiting_title and tag == "a":
+        elif self._parsing and self._awaiting_title and tag == "a":
             self._awaiting_title = False
             self._in_title = True
 
@@ -135,7 +146,13 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
     def handle_endtag(self, tag):
 
-        if self._in_search and tag == "strong":
+        if self._search_coming and tag == "strong":  # 2019
+            self._search_coming = False
+            self._in_search = True
+        elif self._in_search and tag == "strong":  #2018
+            self._in_search = False
+            self._awaiting_title = True
+        elif self._in_search and tag == "div":  #2019
             self._in_search = False
             self._awaiting_title = True
         elif self._in_title and tag == "a":
