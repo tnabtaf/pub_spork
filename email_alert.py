@@ -37,9 +37,8 @@ class Email(object):
 
 class EmailAlert(alert.Alert):
     """
-    Abstraction of an email alert.
-
-    Should be overridden by subclass.
+    Email Alert!
+    All kinds of email alerts subclass this.
     """
     def __init__(self):
         """Init method for EmailAlerts.  Mainly documents attributes,

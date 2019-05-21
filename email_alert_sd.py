@@ -187,6 +187,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
     def __init__(self, email):
 
+        email_alert.EmailAlert.__init__(self)
         html.parser.HTMLParser.__init__(self)
 
         self._alert = email
@@ -197,7 +198,6 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._alert.body_text).decode("utf-8")
         self._current_pub_alert = None
 
-        self._in_html_part = False
         self._in_td_depth = 0
         self._in_h1 = False
         self._in_search = False
@@ -208,6 +208,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._in_ref = False
         self._expecting_authors = False
         self._in_authors = False
+        self._done = False
 
         self.feed(self._email_body_text)  # process the HTML
 
@@ -256,7 +257,7 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
             </p>
           </td>
         """
-        if self._in_html_part:
+        if not self._done:
             if tag == "td":
                 self._in_td_depth += 1
             elif tag == "h1":
@@ -276,15 +277,20 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
                 # pub URL is where the a tag points to.
                 full_url = urllib.parse.unquote(attrs[0][1])
 
-                # Current email links look like:
-                # https://cwhib9vv.r.us-east-1.awstrack.me/L0/
+                # Current email links look like Either
+                #  https://cwhib9vv.r.us-east-1.awstrack.me/L0/
                 #   https:%2F%2Fwww.sciencedirect.com%2Fscience%2Farticle%2Fpii%2FB9780128156094000108
                 #   %3Fdgcid=raven_sd_search_email/1/01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
                 #
-                # We want the middle part, the second HTTPS.
-                # Proxy links won't work with full redirect URL
-                minus_redirect = "https" + full_url.split("https")[2]
-                self._current_pub_alert.pub.url = minus_redirect.split("?")[0]
+                #  We want the middle part, the second HTTPS.
+                #  Proxy links won't work with full redirect URL
+                # OR
+                #  https://www.sciencedirect.com/science/article/pii/S0262407919306967?dgcid=raven_sd_search_email
+                try:
+                    minus_redirect = "https" + full_url.split("https")[2]
+                    self._current_pub_alert.pub.url = minus_redirect.split("?")[0]
+                except IndexError:
+                    self._current_pub_alert.pub.url = full_url
                 self._current_pub_alert.pub.title = ""
 
             elif tag == "p" and self._expecting_pub_type:
@@ -304,23 +310,7 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
     def handle_data(self, data):
         data = data.strip()
 
-        # ScienceDirect emails contain 2 parts, each with identical html text,
-        # except for the part header.  To avoid reporting everything twice,
-        # only parse the official HTML attachment
-
-        if len(data) > 12 and data[0:12] == "------=_Part":
-            # starting a new part.  Is it the part we are interested in?
-            part_lines = data.split("\r\n")
-            self._in_html_part = False
-            for line in part_lines:
-                if line[0:14] == "Content-Type: ":
-                    content_type_items = line.split(";")
-                    for item in content_type_items:
-                        if item.split(" ")[1].strip() == "text/html":
-                            self._in_html_part = True
-                            break
-
-        elif self._in_html_part:
+        if not self._done:
             if self._in_h1 and data == "Showing top results for search alert:":
                 self._in_search = True
             elif self._in_search:
@@ -342,7 +332,7 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
 
     def handle_endtag(self, tag):
 
-        if self._in_html_part:
+        if not self._done:
             if tag == "a" and self._in_pub_title:
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title.strip())
@@ -355,6 +345,14 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
             elif tag == "h1":
                 self._in_h1 = False
                 self._in_search = False
+
+            elif tag == "html":
+                # ScienceDirect emails, prior to May 2019, contain 2 parts, 
+                # each with identical html text, except for the part header.
+                # To avoid reporting everything twice,
+                # only one of them.
+
+                self._done = True
 
         return(None)
 

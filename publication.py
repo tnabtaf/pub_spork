@@ -25,11 +25,19 @@ import urllib.request
 SSL_CONTEXT = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
 # Some publishers restrict access if you come in as Python
+# Which Publishers?  I don't remember.
 HTTP_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.10; "
         + "rv:62.0) Gecko/20100101 Firefox/62.0")
     }
+
+# Try using CURL instead, as Wiley responds better to that than it does to
+# pretending to be Mozilla
+# HTTP_HEADERS = {
+#    "User-Agent": "curl/7.54.0"
+#    }
+# Nope, that didn't work either.
 
 # Cache any URLs that we have already checked for redirects.  Checking for
 # redirects is expensive. Don't do it more than once for a URL.

@@ -123,7 +123,8 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # https://onlinelibrary.wiley.com/doi/10.15252/embr.201847227
             # EXCEPT IT DOES NOT. FROM THIS PROGRAM IT REDIRECTS TO
             # https://onlinelibrary.wiley.com/action/cookieAbsent
-            #
+            #   Hmm. Works for CURL.  Updated publication.py to use CURL
+            #   Nope, still doesn't work, still get cookieAbsent.
             # loop through attrs looking for href
             for attr in attrs:
                 if attr[0] == "href":
@@ -133,6 +134,8 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
                 # Wiley sometimes forgets leading http://
                 base_url = "http://" + base_url
             self._current_pub.url = base_url
+            # self._current_pub.url = (
+            #    publication.get_potentially_redirected_url(base_url))
             if base_url.split("/")[3] == "doi":
                 doi_bits = "/".join(base_url.split("/")[4:6])
                 self._current_pub.canonical_doi = (
