@@ -185,6 +185,20 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     Parse HTML email body from ScienceDirect.  The body maybe reporting more
     than one paper.
     """
+
+    # Define states. Used to have these as separate attributes, but that made
+    # debugging a challenge.  Now have one state attribute.
+
+    STATE_IN_H1 = "In H1"
+    STATE_IN_SEARCH = "In Search"
+    STATE_IN_PUB_TITLE ="In Pub Title"
+    STATE_EXPECTING_PUB_TYPE = "Expecting Pub Type"
+    STATE_EXPECTING_REF = "Expecting Ref"
+    STATE_IN_REF = "In Ref"
+    STATE_EXPECTING_AUTHORS = "Expecting Authors"
+    STATE_IN_AUTHORS = "In Authors"
+    STATE_DONE = "Done"
+
     def __init__(self, email):
 
         email_alert.EmailAlert.__init__(self)
@@ -199,16 +213,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._current_pub_alert = None
 
         self._in_td_depth = 0
-        self._in_h1 = False
-        self._in_search = False
-        self._in_pub_info = False
-        self._in_pub_title = False
-        self._expecting_pub_type = False
-        self._expecting_ref = False
-        self._in_ref = False
-        self._expecting_authors = False
-        self._in_authors = False
-        self._done = False
+        self._state = None
 
         self.feed(self._email_body_text)  # process the HTML
 
@@ -257,22 +262,21 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
             </p>
           </td>
         """
-        if not self._done:
+        if not self._state == SDEmailAlert.STATE_DONE:
             if tag == "td":
                 self._in_td_depth += 1
             elif tag == "h1":
-                self._in_h1 = True
+                self._state = SDEmailAlert.STATE_IN_H1
             elif tag == "h2" and self._in_td_depth:
                 # everything in this TD is about the publication.
                 # The H2 is the first element in the TD
-                self._in_pub_info = True
-                self._in_pub_title = True
+                self._state = SDEmailAlert.STATE_IN_PUB_TITLE
                 # paper has started
                 pub = publication.Pub()
                 self._current_pub_alert = pub_alert.PubAlert(pub, self)
                 self.pub_alerts.append(self._current_pub_alert)
 
-            elif tag == "a" and self._in_pub_title:
+            elif tag == "a" and self._state == SDEmailAlert.STATE_IN_PUB_TITLE:
                 # pub title is the content of the a tag.
                 # pub URL is where the a tag points to.
                 full_url = urllib.parse.unquote(attrs[0][1])
@@ -293,58 +297,51 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
                     self._current_pub_alert.pub.url = full_url
                 self._current_pub_alert.pub.title = ""
 
-            elif tag == "p" and self._expecting_pub_type:
-                self._expecting_pub_type = False
-                self._expecting_ref = True
+            elif tag == "p" and self._state == SDEmailAlert.STATE_EXPECTING_PUB_TYPE:
+                self._state = SDEmailAlert.STATE_EXPECTING_REF
 
-            elif tag == "p" and self._expecting_ref:
-                self._expecting_ref = False
-                self._in_ref = True
+            elif tag == "p" and self._state == SDEmailAlert.STATE_EXPECTING_REF:
+                self._state = SDEmailAlert.STATE_IN_REF
 
-            elif tag == "p" and self._expecting_authors:
-                self._expecting_authors = False
-                self._in_authors = True
+            elif tag == "p" and self._state == SDEmailAlert.STATE_EXPECTING_AUTHORS:
+                self._state = SDEmailAlert.STATE_IN_AUTHORS
 
         return(None)
 
     def handle_data(self, data):
         data = data.strip()
 
-        if not self._done:
-            if self._in_h1 and data == "Showing top results for search alert:":
-                self._in_search = True
-            elif self._in_search:
+        if not self._state == SDEmailAlert.STATE_DONE:
+            if self._state == SDEmailAlert.STATE_IN_H1 and data == "Showing top results for search alert:":
+                self._state = SDEmailAlert.STATE_IN_SEARCH
+            elif self._state == SDEmailAlert.STATE_IN_SEARCH:
                 self.search = "ScienceDirect search: " + data
-            elif self._in_pub_title:
+            elif self._state == SDEmailAlert.STATE_IN_PUB_TITLE:
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title + data + " ")
-            elif self._in_ref:
+            elif self._state == SDEmailAlert.STATE_IN_REF:
                 self._current_pub_alert.pub.ref = data
-                self._in_ref = False
-                self._expecting_authors = True
-            elif self._in_authors:
+                self._state = SDEmailAlert.STATE_EXPECTING_AUTHORS
+            elif self._state == SDEmailAlert.STATE_IN_AUTHORS:
                 self._current_pub_alert.pub.set_authors(
                     data, to_canonical_first_author(data))
-                self._in_authors = False
-                self._in_pub = False  # Done with this pub alert.
+                self._state = None  # Done with this pub alert.
 
         return(None)
 
     def handle_endtag(self, tag):
 
-        if not self._done:
-            if tag == "a" and self._in_pub_title:
+        if not self._state == SDEmailAlert.STATE_DONE:
+            if tag == "a" and self._state == SDEmailAlert.STATE_IN_PUB_TITLE:
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title.strip())
-                self._in_pub_title = False
-                self._expecting_pub_type = True
+                self._state = SDEmailAlert.STATE_EXPECTING_PUB_TYPE
 
             elif tag == "td":
                 self._in_td_depth -= 1
 
             elif tag == "h1":
-                self._in_h1 = False
-                self._in_search = False
+                self._state = None
 
             elif tag == "html":
                 # ScienceDirect emails, prior to May 2019, contain 2 parts, 
@@ -352,7 +349,7 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
                 # To avoid reporting everything twice,
                 # only one of them.
 
-                self._done = True
+                self._state = SDEmailAlert.STATE_DONE
 
         return(None)
 
