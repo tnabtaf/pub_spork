@@ -180,6 +180,17 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
     SEARCH_COMING = "Your criteria:"
 
+    STATE_PARSING_STARTED = "Parsing Started"
+    STATE_AWAITING_SEARCH = "Awaiting Search"
+    STATE_IN_SEARCH = "In Search"
+    STATE_AWAITING_TITLE = "Awaiting Title"
+    STATE_IN_TITLE = "In Title"
+    STATE_AWAITING_JOURNAL = "Awaiting Journal"
+    STATE_IN_JOURNAL = "In Journal"
+    STATE_AWAITING_AUTHORS = "Awaiting Authors"
+    STATE_IN_AUTHORS = "In Authors"
+    STATE_DONE = "Done"
+
     def __init__(self, email):
 
         html.parser.HTMLParser.__init__(self)
@@ -195,15 +206,7 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         self._current_pub = None
 
-        self._parsing = False
-        self._search_coming = False
-        self._in_search = False
-        self._awaiting_title = False
-        self._in_title = False
-        self._awaiting_journal = False
-        self._in_journal = False
-        self._awaiting_authors = False
-        self._in_authors = False
+        self._state = None
 
         # It's a Multipart email; just ignore anything outside HTML part.
         self.feed(self._email_body_text)  # process the HTML body text.
@@ -214,15 +217,16 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         data = data.strip()
 
-        if self._parsing and data == WileyEmailAlert.SEARCH_COMING:
-            self._search_coming = True
-        elif self._in_search:
+        if (self._state == WileyEmailAlert.STATE_PARSING_STARTED
+                and data == WileyEmailAlert.SEARCH_COMING):
+            self._state = WileyEmailAlert.STATE_AWAITING_SEARCH
+        elif self._state == WileyEmailAlert.STATE_IN_SEARCH:
             self.search += data
-        elif self._in_title:
+        elif self._state == WileyEmailAlert.STATE_IN_TITLE:
             self._current_pub.set_title(self._current_pub.title + data)
-        elif self._in_journal:
+        elif self._state == WileyEmailAlert.STATE_IN_JOURNAL:
             self._current_pub.ref += data
-        elif self._in_authors:
+        elif self._state == WileyEmailAlert.STATE_IN_AUTHORS:
             # Author string also has date in it:
             # March 2015Pieter-Jan L. Maenhaut, Hend Moens and Filip De Turck
             # strip off anything looking like a year and before.
@@ -248,17 +252,15 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
 
         if tag == "html":
-            self._parsing = True
-        elif (self._parsing
+            self._state = WileyEmailAlert.STATE_PARSING_STARTED
+        elif (self._state != WileyEmailAlert.STATE_DONE
               and tag == "a"
               and len(attrs) > 2
               and attrs[2][1] == "http://journalshelp.wiley.com"):
-            self._parsing = False          # Done looking at input.
-            self._awaiting_title = False
-        elif self._parsing and self._awaiting_title and tag == "a":
-            self._awaiting_title = False
-            self._in_title = True
-
+            self._state = WileyEmailAlert.STATE_DONE   # Done looking at input.
+        elif (self._state == WileyEmailAlert.STATE_AWAITING_TITLE
+              and tag == "a"):
+            self._state = WileyEmailAlert.STATE_IN_TITLE
             self._current_pub = publication.Pub()
             self.pub_alerts.append(pub_alert.PubAlert(self._current_pub, self))
 
@@ -285,27 +287,25 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
                 doi_bits = "/".join(base_url.split("/")[4:6])
                 self._current_pub.canonical_doi = (
                     publication.to_canonical_doi(doi_bits))
-        elif self._awaiting_journal and tag == "span":
-            self._in_journal = True
-            self._awaiting_journal = False
+        elif (self._state == WileyEmailAlert.STATE_AWAITING_JOURNAL
+              and tag == "span"):
+            self._state = WileyEmailAlert.STATE_IN_JOURNAL
             self._current_pub.ref = ""
 
         return (None)
 
     def handle_endtag(self, tag):
 
-        if self._search_coming and tag == "strong":  # 2019
-            self._search_coming = False
-            self._in_search = True
-        elif self._in_search and tag == "div":  #2019
-            self._in_search = False
-            self._awaiting_title = True
-        elif self._in_title and tag == "a":
-            self._in_title = False
-            self._awaiting_journal = True
-        elif self._in_journal and tag == "span":
-            self._in_journal = False
-            self._awaiting_authors = True
+        if (self._state == WileyEmailAlert.STATE_AWAITING_SEARCH
+            and tag == "strong"):  # 2019
+            self._state = WileyEmailAlert.STATE_IN_SEARCH
+        elif (self._state == WileyEmailAlert.STATE_IN_SEARCH
+              and tag == "div"):  #2019
+            self._state = WileyEmailAlert.STATE_AWAITING_TITLE
+        elif self._state == WileyEmailAlert.STATE_IN_TITLE and tag == "a":
+            self._state = WileyEmailAlert.STATE_AWAITING_JOURNAL
+        elif self._state == WileyEmailAlert.STATE_IN_JOURNAL and tag == "span":
+            self._state = WileyEmailAlert.STATE_AWAITING_AUTHORS
 
         return (None)
 
@@ -313,12 +313,11 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         """
         Process tags like IMG and BR that don't have end tags.
         """
-        if self._awaiting_authors and tag == "br":
-            self._in_authors = True
-            self._awaiting_authors = False
-        elif self._in_authors and tag == "br":
-            self._in_authors = False
-            self._awaiting_title = True   # in case there are more
+        if (self._state == WileyEmailAlert.STATE_AWAITING_AUTHORS
+            and tag == "br"):
+            self._state = WileyEmailAlert.STATE_IN_AUTHORS
+        elif self._state == WileyEmailAlert.STATE_IN_AUTHORS and tag == "br":
+            self._state = WileyEmailAlert.STATE_AWAITING_TITLE 
 
         return(None)
 
