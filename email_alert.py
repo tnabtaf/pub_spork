@@ -48,7 +48,6 @@ class EmailAlert(alert.Alert):
         self.pub_alerts = None       # PubAlert. List generated from this alert
         self.search = None           # str. Search alert is for.
         self._email_body_text = None  # str. body of email.
-        self.ref = None              # str. Where pub published.
         self.warn_if_empty = True    # issue warning if no pubs in alert.
 
         return(None)

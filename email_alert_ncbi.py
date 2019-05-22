@@ -36,7 +36,6 @@ class NCBIEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         decoded = decoded.replace("\\t", "")
         decoded = decoded.replace("\\'", "'")
         self._email_body_text = decoded
-        self.ref = None                   # Where pub was published.
 
         self._current_pub = None
         self._in_senders_message = False

@@ -46,7 +46,6 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._alert = email
         self.pub_alerts = []
         self.search = "Google: "
-        self.ref = None                   # Where pub was published.
 
         # Google Scholar email body content is Quoted Printable encoded.
         # Decode it.

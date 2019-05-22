@@ -17,6 +17,8 @@ SOURCE_NAME_TEXT = "Wiley Online Library"
 
 SUBJECT_START_2018 = "Saved Search Alert"
 SUBJECT_START_2018_LEN = len(SUBJECT_START_2018)
+CURRENT_CITATION_SUBJECT = "Article Event Alert"
+
 
 
 class WileyEmailAlert2018AndBefore(
@@ -38,7 +40,6 @@ class WileyEmailAlert2018AndBefore(
         self._alert = email
         self.pub_alerts = []
         self.search = "Wiley Online Library: "
-        self.ref = None                   # where pub was published.
 
         # email uses Quoted Printable encoding Decode it.
         decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
@@ -198,7 +199,6 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._alert = email
         self.pub_alerts = []
         self.search = "Wiley Online Library: "
-        self.ref = None                   # where pub was published.
 
         # email uses Quoted Printable encoding Decode it.
         decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
@@ -322,6 +322,184 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         return(None)
 
 
+class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+    """
+    All the information in a Wiley Citation Alert, from 2019 on.
+
+    These are different enough from the save search alerts to merit
+    their own parse.
+    """
+    STATE_IN_SEARCH = "In Search"
+    STATE_AWAITING_PUBS = "Awaiting Pubs"
+    STATE_IN_PUB_LIST = "In Pub List"
+    STATE_AWAITING_AUTHOR_OR_TITLE = "Awaiting Author or Title"
+    STATE_IN_AUTHOR = "In Author"
+    STATE_IN_TITLE_SECTION = "In Title Section"
+    STATE_IN_JOURNAL = IN_JOURNAL = "In Journal"
+    STATE_IN_DOI = "In DOI"
+    STATE_IN_VOLUME = "In Volume"
+    STATE_IN_REF_TAIL = "In Ref Tail"
+    STATE_DONE = "Done"
+
+    def __init__(self, email):
+
+        html.parser.HTMLParser.__init__(self)
+        email_alert.EmailAlert.__init__(self)
+        self._alert = email
+        self.pub_alerts = []
+        self.search = "Wiley Online Library: "
+
+        # email uses Quoted Printable encoding Decode it.
+        decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
+        self._email_body_text = decoded
+
+        self._current_pub = None
+        self._state = None
+
+        # It's a Multipart email; just ignore anything outside HTML part.
+        self.feed(self._email_body_text)  # process the HTML body text.
+
+        return None
+
+    def handle_starttag(self, tag, attrs):
+
+        if tag == "h5":
+            self._state = WileyEmailCitationAlert.STATE_IN_SEARCH  # only 1 h5; wraps pub being cited.
+        elif (tag =="p"
+              and self._state == WileyEmailCitationAlert.STATE_IN_PUB_LIST):
+            self._state = WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE
+            self._current_pub = publication.Pub()
+            self.pub_alerts.append(pub_alert.PubAlert(self._current_pub, self))
+        elif (
+            tag == "span"
+            and self._state
+                == WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE):
+            # Just entered an author.
+            self._state = WileyEmailCitationAlert.STATE_IN_AUTHOR
+        elif (tag == "em"
+              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+            # em here means journal, I sure hope.
+            self._state = WileyEmailCitationAlert.STATE_IN_JOURNAL
+        elif (tag == "strong"
+              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+            self._state = WileyEmailCitationAlert.STATE_IN_VOLUME
+        elif (tag == "hr"
+              and self._state == WileyEmailCitationAlert.STATE_IN_PUB_LIST):
+            self._state = WileyEmailCitationAlert.STATE_DONE
+        return (None)
+
+
+    YEAR_RE = re.compile(r"\([12][0-9][0-9][0-9]\)\.$")
+
+    def handle_title_section_data(self, data):
+        """
+        Title sections are complicated. As of May 2019, title sections look like
+
+           Dissecting the Control of Flowering Time in Grasses
+           Using Brachypodium distachyon,
+           ,
+           10.1007/7397_2015_10,
+           (259-273),
+           1-Jan-(2015).
+        OR
+          ,
+           Dynamic multi-workflow scheduling: A deadline and
+           cost-aware approach for commercial clouds,
+            <em>Future Generation Computer Systems</em>,
+            10.1016/j.future.2019.04.029,
+            <strong>100</strong>,
+            (98-108),
+            1-Nov-(2019).
+        So, um crap.
+        That info may arrive in a single string, or in several strings
+        """
+        parts = data.split(", ")
+        # What do we have?
+        if len(parts) > 4 and publication.is_canonical_doi(parts[-3]):
+            # probably (certainly?) have title section in a single string.
+            #  title in parts[1:-4],
+            #  DOI in parts[-3],
+            #  Journal parts[-4],
+            #  Other ref misc in parts[-2:]
+            self._current_pub.set_title(
+                self._current_pub.title + " ".join(parts[1:-4]))
+            self._current_pub.canonical_doi = parts[-3]
+            self._current_pub.ref += parts[-4] + ", " + ", ".join(parts[-2:])
+
+        else:
+            # Um, crap.  Are we in just the title, or some ref stuff?
+            # If parts[-1] ends in (year). then we are in ref
+            if WileyEmailCitationAlert.YEAR_RE.search(data):
+                self._current_pub.ref += data
+            else:  # gotta be (gotta be!) title
+                self._current_pub.set_title(self._current_pub.title + " " + data)
+
+        return None
+
+
+    def handle_data(self, data):
+
+        data = data.strip()
+
+        if self._state == WileyEmailCitationAlert.STATE_IN_SEARCH:
+            self.search += data
+        elif self._state == WileyEmailCitationAlert.STATE_IN_AUTHOR:
+            canonical_first_author = self._current_pub.canonical_first_author
+            if not canonical_first_author:
+                # extract last name of first author.
+                last_name = data.split(" ")[-1]
+                canonical_first_author = publication.to_canonical(last_name)
+            self._current_pub.set_authors(
+                self._current_pub.authors + " " + data,
+                canonical_first_author)
+        elif self._state == WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE:
+            # could be an author list joiner ", " or "and" or start of title
+            if data in [",", "and"]:
+                # still in author list
+                self._current_pub.set_authors(
+                    self._current_pub.authors + " " + data,
+                    self._current_pub.canonical_first_author)
+            else:  # Into title
+                self._state = WileyEmailCitationAlert.STATE_IN_TITLE_SECTION
+                self.handle_title_section_data(data)
+        elif self._state == WileyEmailCitationAlert.STATE_IN_JOURNAL:
+            self._current_pub.ref += " " + data
+        elif self._state == WileyEmailCitationAlert.STATE_IN_DOI:
+            self._current_pub.canonical_doi = data
+            self._state = WileyEmailCitationAlert.STATE_IN_TITLE_SECTION
+        elif self._state == WileyEmailCitationAlert.STATE_IN_VOLUME:
+            self._current_pub.ref += ", " + data
+        elif self._state == WileyEmailCitationAlert.STATE_IN_REF_TAIL:
+            self._current_pub.ref += ", " + data
+            self._state = WileyEmailCitationAlert.STATE_IN_TITLE_SECTION
+
+        return(None)
+
+
+    def handle_endtag(self, tag):
+
+        if (tag == "h5"
+            and self._state == WileyEmailCitationAlert.STATE_IN_SEARCH):
+            self._state = WileyEmailCitationAlert.STATE_AWAITING_PUBS
+        elif (tag == "h2"
+              and self._state == WileyEmailCitationAlert.STATE_AWAITING_PUBS):
+            self._state = WileyEmailCitationAlert.STATE_IN_PUB_LIST
+        elif (tag == "span"
+              and self._state == WileyEmailCitationAlert.STATE_IN_AUTHOR):
+            self._state = WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE
+        elif (tag == "em"
+              and self._state == WileyEmailCitationAlert.STATE_IN_JOURNAL):
+            self._state = WileyEmailCitationAlert.STATE_IN_DOI
+        elif (tag == "strong"
+              and self._state == WileyEmailCitationAlert.STATE_IN_VOLUME):
+            self._state = WileyEmailCitationAlert.STATE_IN_REF_TAIL
+        elif (tag == "p"
+              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+            self._state = WileyEmailCitationAlert.STATE_IN_PUB_LIST
+
+        return (None)
+
+
 def sniff_class_for_alert(email):
     """
     Given an email alert from Wiley, figure out which version
@@ -329,11 +507,13 @@ def sniff_class_for_alert(email):
 
     2018 and before has the subject line "Saved Search Alert"
     2019 and on has "Wiley Online Library x new match for" or
-    "Current Protocols Article Event Alert (doi:10.1002/0471142727.mb1910s89)"
+    "xxxx yyyy Article Event Alert (doi:10.1002/0471142727.mb1910s89)"
     for citation alerts.
     """
 
     if str(email.subject)[:SUBJECT_START_2018_LEN] == SUBJECT_START_2018:
         return WileyEmailAlert2018AndBefore
+    elif CURRENT_CITATION_SUBJECT in str(email.subject):
+        return WileyEmailCitationAlert
     else:
         return WileyEmailAlert

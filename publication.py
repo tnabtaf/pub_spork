@@ -76,7 +76,7 @@ class Pub(object):
         self.tags = None                  # List of Keywords for this pub
         self.journal_name = None          # Name if from a journal
         self.canonical_journal = None     # None if not from a journal
-        self.ref = None                   # reference to pub
+        self.ref = ""                     # reference to pub
         self.entry_date = None            # Date added to library.
 
         return None
