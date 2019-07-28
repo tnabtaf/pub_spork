@@ -185,6 +185,11 @@ def get_args():
             + "or, only about a subset of tags. If this parameter is given "
             + "then only the tags listed in this file will be reported on. "
             + "List one tag per line."))
+    report_args.add_argument(
+        "--numtagcolumngroups", required=False, type=int, default=4,
+        help=(
+            "Specifies how many tags (and their counts) should be listed "
+            + "in each row of a tag report. Default is 4."))
 
     args = arg_parser.parse_args()
 

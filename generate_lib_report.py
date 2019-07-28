@@ -56,6 +56,7 @@ def gen_tag_year_report(lib, format_module):
 
 def gen_tag_count_date_range_report(
         lib, format_module,
+        num_tag_column_groups,
         entry_start_date, entry_end_date):
 
     """Generate a table with with each entry showing the tag name,
@@ -96,6 +97,7 @@ def gen_tag_count_date_range_report(
         start_entry_date=entry_start_date, end_entry_date=entry_end_date))
     report = format_module.gen_tag_count_date_range_report(
         tags_ord_dict, n_total_papers, lib,
+        num_tag_column_groups,
         entry_start_date, entry_end_date)
 
     return u"".join(report)
@@ -168,6 +170,11 @@ def get_args():
             + "or, only about a subset of tags. If this parameter is given "
             + "then only the tags listed in this file will be reported on. "
             + "List one tag per line."))
+    report_args.add_argument(
+        "--numtagcolumngroups", required=False, type=int, default=4,
+        help=(
+            "Specifies how many tags (and their counts) should be listed "
+            + "in each row of a tag report. Default is 4."))
 
     return(arg_parser.parse_args())
 
@@ -196,6 +203,7 @@ def generate_lib_report(args):
     if args.tagcountdaterange:
         print(gen_tag_count_date_range_report(
             input_lib, format_module,
+            args.numtagcolumngroups,
             args.entrystartdate, args.entryenddate))
 
     return None

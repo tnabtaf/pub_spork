@@ -72,6 +72,10 @@ optional arguments:
                         optional libraries of already curated pubs. Generates
                         an HTML page that to use to curate the new pubs.
   --report              Generate a library report.
+  --journal             Produce table showing number of papers in different
+                        journals.
+  --year                Produce table showing number of papers published each
+                        year.
 
 Common arguments:
   --libtype LIBTYPE     What type of of 'already accepted pubs' library are we
@@ -96,8 +100,8 @@ Match arguments:
                         Format: DD-Mmm-YYYY. Example: 01-Jan-2015.
   --sources SOURCES     Which alert sources to process. Is either 'all' or a
                         comma-separated list (no spaces) from these sources:
-                        webofscience-email, sciencedirect-email, myncbi-email,
-                        wiley-email, and googlescholar-email
+                        googlescholar-email, myncbi-email, sciencedirect-
+                        email, wiley-email, and webofscience-email
   --proxy PROXY         String to insert in URLs to access pubs through your
                         paywall. For Johns Hopkins, for example, this is:
                         '.proxy1.library.jhu.edu'
@@ -120,18 +124,17 @@ Match arguments:
                         reviewed and are in fact not duplicate titles. These
                         will not get reported as duplicates.
   --curationpage CURATIONPAGE
-                        Where to put the HTML page to use to curate pubs.
+                        Where to put the HTML page listing all the pubs.
+                        Required for match runs.
 
 Report arguments:
   --reportformat REPORTFORMAT
                         What format to generate the report in. Options are
-                        markdown, and html.
+                        html, and markdown.
   --tagyear             Produce table showing number of papers with each tag,
                         each year.
   --yeartag             Produce table showing number of papers with each year,
                         each tag.
-  --journalyear         Produce table showing number of papers in different
-                        journals, each year.
   --tagcountdaterange   Produce table showing number of papers that were
                         tagged with each tag during a given time period.
                         --entrystartdate and --entryenddate parameters are
@@ -149,6 +152,9 @@ Report arguments:
                         library, or, only about a subset of tags. If this
                         parameter is given then only the tags listed in this
                         file will be reported on. List one tag per line.
+  --numtagcolumngroups NUMTAGCOLUMNGROUPS
+                        Specifies how many tags (and their counts) should be
+                        listed in each row of a tag report. Default is 4.
 ```
 
 # Supporting Curation (`--match`)

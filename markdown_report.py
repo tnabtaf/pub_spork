@@ -9,8 +9,6 @@ import math
 
 import html_report
 
-N_TAG_COLUMN_GROUPS = 4   # create report with n tags and n counts across
-
 
 def gen_header():
     """Generate a header for Markdown.  Markdown does not have a header."""
@@ -79,7 +77,8 @@ def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
 
 
 def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
-                                    lib, start_date, end_date):
+                                    lib, num_tag_column_groups,
+                                    start_date, end_date):
     """Generate a table with with each entry showing the tag name,
     and the number of papers tagged with that tag during the given date range.
     Each cell shows the number of papers a tag was attached to that generate.
@@ -95,7 +94,7 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
 
     # Have markup for individual tags; now decide how many go in each column
     n_tags_to_report = len(tag_markup)
-    n_tags_per_col = int(math.ceil(n_tags_to_report / N_TAG_COLUMN_GROUPS))
+    n_tags_per_col = int(math.ceil(n_tags_to_report / num_tag_column_groups))
 
     report = []              # now have everything we need; generate report
 
@@ -105,19 +104,19 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
             n_total_papers, start_date, end_date))
 
     header_line = []
-    for col_group in range(N_TAG_COLUMN_GROUPS):
+    for col_group in range(num_tag_column_groups):
         report.append(
             '| # | Tag | ')
         header_line.append('| ---: | --- |')
-        if col_group < N_TAG_COLUMN_GROUPS - 1:
+        if col_group < num_tag_column_groups - 1:
             header_line.append(' --- ')
     report.append("\n")
     report.append("".join(header_line) + "\n")
 
     # add tags & counts
     for row_idx in range(n_tags_per_col):
-        for col_group in range(N_TAG_COLUMN_GROUPS):
-            tagIdx = (row_idx * N_TAG_COLUMN_GROUPS) + col_group
+        for col_group in range(num_tag_column_groups):
+            tagIdx = (row_idx * num_tag_column_groups) + col_group
             if tagIdx < n_tags_to_report:
                 report.append(tag_markup[tagIdx])
             else:

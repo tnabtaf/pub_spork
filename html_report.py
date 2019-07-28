@@ -16,9 +16,6 @@ RED_MAX = max(RED_RANGE)
 GREEN_MAX = max(GREEN_RANGE)
 BLUE_MAX = max(BLUE_RANGE)
 
-N_TAG_COLUMN_GROUPS = 4   # create report with n tags and n counts across
-
-
 def gen_header():
     """Create an HTML header."""
     return (
@@ -222,7 +219,8 @@ def gen_tag_year_report(
 
 
 def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
-                                    lib, start_date, end_date):
+                                    lib, num_tag_column_groups,
+                                    start_date, end_date):
     """Generate a table with with each entry showing the tag name,
     and the number of papers tagged with that tag during the given date range.
     Each cell shows the number of papers a tag was attached to that generate.
