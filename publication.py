@@ -440,4 +440,6 @@ def get_potentially_redirected_url(pub_url):
                     file=sys.stderr)
                 redirect_url = pub_url
             redirect_cache[pub_url] = redirect_url
+        if redirect_url[-12:] == "cookieAbsent":   # Give it up
+            redirect_url = pub_url
         return redirect_url

@@ -400,12 +400,16 @@ class PubMatchDB(object):
                 if pm._known_pub:
                     state = pm._known_pub.get_state()
                     annotation = pm._known_pub.get_annotation()
-                    state_text += " ({0}: {1})".format(state, annotation)
+                    qualifier = pm._known_pub.get_qualifier()
+                    state_text += (" ({0}: {1} | {2})".format(
+                        state, annotation, qualifier))
                     if state in [
                             known_pub_db.STATE_INLIB,
                             known_pub_db.STATE_IGNORE]:
                         div_style = (  # deemphasize it
                             "background-color: #cccccc; color: #999999; ")
+                if pm._lib_pub:
+                    state_text+= " (" + ", ".join(pm._lib_pub.tags) + ")"
                 known_count += 1
                 counter = known_count
             else:                 # It's a previously unknown pub.
