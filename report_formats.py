@@ -3,16 +3,19 @@
 
 import html_report
 import markdown_report
+import bootstrap_buttons_report
 
 # command line argument settings
 MARKDOWN = "markdown"
 HTML = "html"
 TSV = "tsv"
+BOOTSTRAP_BUTTONS = "bootstrap-buttons"
 
 # mapping from commmand line arg to module that handles it.
 FORMAT_MAPPING = {
     HTML: html_report,
     MARKDOWN: markdown_report,
+    BOOTSTRAP_BUTTONS: bootstrap_buttons_report
     }
 
 FORMATS = list(FORMAT_MAPPING.keys())
