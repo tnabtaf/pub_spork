@@ -17,7 +17,8 @@ import publication
 SENDERS = [
     "noreply@isiknowledge.com",
     "noreply@webofscience.com",
-    "noreply@clarivate.com"
+    "noreply@clarivate.com",
+    "alerts-noreply@clarivate.com" # Starting on 2019/11/07
     ]
 
 IS_EMAIL_SOURCE = True
