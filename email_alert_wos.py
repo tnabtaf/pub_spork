@@ -1,7 +1,9 @@
 #!/usr/local/bin/python3
 """Information about a Web of Science reference / Citation"""
 
+import enum
 import html.parser
+import quopri                             # Emails after 2019/11/07
 import re
 import sys
 
@@ -25,9 +27,14 @@ IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
 
-CURRENT_BODY_TEXT_START_TAG_RE = re.compile(
-        r"[b'\\rn]*<!DOCTYPE html>")
+OLD_2018_BEFORE_BODY_TEXT_START_TAG_RE = re.compile(
+    r"[b'\\rn]*<html>")
 
+OLD_2018_2019_BODY_TEXT_START_TAG_RE = re.compile(
+    r"[b'\\rn]*<!DOCTYPE html>")
+
+CURRENT_BODY_TEXT_START_TAG_RE = re.compile(
+    r"[b'\\rn]*<html lang=")
 
 class WoSEmailAlert2018AndBefore(
         email_alert.EmailAlert, html.parser.HTMLParser):
@@ -175,13 +182,13 @@ class WoSEmailAlert2018AndBefore(
         return None
 
 
-class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+class WoSEmailAlert201808To201911(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
     Parse HTML email body from Web Of Science. The body maybe reporting
     more than one paper.
 
-    Format from 2018/08/15 on.
+    Format from 2018/08/15 through 2019/11/06
       Web of Science Alert - Novak, P    Is a citation alert.
       Web of Science Alert - Genomics Virtual Lab    Is a topic alert.
       They might have the same internal structure
@@ -435,6 +442,165 @@ Then followed by keywords and abstract.
 
         return None
 
+class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
+    """All the information in a Web of Science Email.
+
+    Parse HTML email body from Web Of Science. The body maybe reporting
+    more than one paper.
+
+    Format from 2019/11/07 on.
+      Web of Science Alert - Afgan, E - 3 results    Is a citation alert.
+      Web of Science Alert - S GenOuest - 0 results  Is a topic alert.
+      They might have the same internal structure
+
+    """
+
+    class State(enum.Enum):
+        AWAITING_CONTENT = enum.auto()
+        STARTING_CONTENT = enum.auto()
+        SAVED_SEARCH_TYPE_NEXT = enum.auto()
+        SAVED_SEARCH_STRING_AND_COUNT_NEXT = enum.auto()
+        CITED_PUB_NEXT = enum.auto()
+        CITATION_COUNT_NEXT = enum.auto()
+        CITING_PUB_NEXT = enum.auto()
+        CITING_PUB_AUTHORS_NEXT = enum.auto()
+        CITING_PUB_JOURNAL_NEXT = enum.auto()
+        CITING_PUB_EXCERPT_NEXT = enum.auto()
+        DONE = enum.auto()
+
+    expiration_notice_re = re.compile(
+        r'.*You have an expiring Saved Search| alert from Web of Science')
+
+    greetings_re = re.compile(
+        r"Greetings! You have a (saved search|citation) alert")
+
+    saved_search_type_next_re = re.compile(
+        r"Your search,")
+    saved_search_string_re = re.compile(
+        r"^\((.*?)\) has \d")
+
+    is_citation_report_re = re.compile(
+        r"View (all \d+|this) citations?")
+    citation_count_re = re.compile(
+        r"has been cited \d+ times? since")
+    citing_pubs_over_re = re.compile(
+        r"Showing \d+ of \d+ citations?")
+
+
+    def __init__(self, email):
+
+        html.parser.HTMLParser.__init__(self)
+
+        self._alert = email
+        self.pub_alerts = []
+        self.search = "WoS: "
+        self.warn_if_empty = False  # WoS sends even if nothing to report
+        self.expected_pub_count = None
+        self.found_pub_count = 0
+
+        # ye olde quoted printable encoding. Make it go away
+        body_text = quopri.decodestring(self._alert.body_text).decode("utf-8")
+
+        # strip out all the annoying "\r", "\n", "\t"s and wayward backslashes
+        self._email_body_text = re.sub(r"=?\\r|\\n|\\t|\\", "", body_text)
+
+        self._current_pub = None
+
+        self._state = WoSEmailAlert.State.AWAITING_CONTENT
+
+        if WoSEmailAlert.expiration_notice_re.match(self._email_body_text):
+            # TODO: This match and this code not tested under new format
+            expiring_search = re.match(
+                r'.+?Your alert for <span.+?>&quot;\s*(.+?)&quot;',
+                self._email_body_text)
+            print("Warning: Search expiring for", file=sys.stderr)
+            print(
+                "  WOS: {0}\n".format(expiring_search.group(1)),
+                file=sys.stderr)
+            self.search += expiring_search.group(1)
+        else:
+            self.feed(self._email_body_text)  # process the HTML body text.
+
+        return None
+
+    def handle_data(self, data):
+        # eliminate leading, trailing, and multiple embedded spaces
+        data = re.sub('\s+', ' ', data).strip()
+        if data == "":
+            return None                   # nothing to see here folks.
+
+        if self._state == WoSEmailAlert.State.AWAITING_CONTENT:
+            if WoSEmailAlert.greetings_re.match(data):
+                self._state = WoSEmailAlert.State.STARTING_CONTENT
+
+        elif self._state == WoSEmailAlert.State.STARTING_CONTENT:
+            if WoSEmailAlert.saved_search_type_next_re.match(data):
+                self._state = WoSEmailAlert.State.SAVED_SEARCH_TYPE_NEXT
+            elif WoSEmailAlert.is_citation_report_re.match(data):
+                self._state = WoSEmailAlert.State.CITED_PUB_NEXT
+
+        # Search alert states
+        elif self._state == WoSEmailAlert.State.SAVED_SEARCH_TYPE_NEXT:
+            self.search += data + " "
+            self._state = WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT
+
+        elif self._state == WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT:
+            # form: "(Title or search string) has 0 new records as of Mon XXth YYYY."
+            # We Just want the title or search string. Match to "has" in case
+            # title has parens in it.
+            self.search += WoSEmailAlert.saved_search_string_re.match(data).group(1)
+            self._state = WoSEmailAlert.State.DONE
+
+        # Citation alert states
+        elif self._state == WoSEmailAlert.State.CITED_PUB_NEXT:
+            self.search += data
+            self._state = WoSEmailAlert.State.CITATION_COUNT_NEXT
+
+        elif self._state == WoSEmailAlert.State.CITATION_COUNT_NEXT:
+            # ignore count,
+            self._state = WoSEmailAlert.State.CITING_PUB_NEXT
+
+        elif self._state == WoSEmailAlert.State.CITING_PUB_NEXT:
+            if WoSEmailAlert.citing_pubs_over_re.match(data):
+                self._state = WoSEmailAlert.State.DONE
+            else:                         # Create a new pub alert.
+                self._current_pub = publication.Pub()
+                self._current_pub_alert = pub_alert.PubAlert(
+                    self._current_pub, self)
+                self.pub_alerts.append(self._current_pub_alert)
+                self.found_pub_count += 1
+                self._current_pub.set_title(data)
+                self._state = WoSEmailAlert.State.CITING_PUB_AUTHORS_NEXT
+
+        elif self._state == WoSEmailAlert.State.CITING_PUB_AUTHORS_NEXT:
+            # WoS author list looks like:
+            #  Halbritter, Dale A.; Storer, Caroline G.; Kawahara, Akito Y.; Daniels, Jaret C.
+            canonical_first_author = publication.to_canonical(
+                data.split(",")[0])
+            self._current_pub.set_authors(data, canonical_first_author)
+            self._state = WoSEmailAlert.State.CITING_PUB_JOURNAL_NEXT
+
+        elif self._state == WoSEmailAlert.State.CITING_PUB_JOURNAL_NEXT:
+            self._current_pub.ref = data
+            self._state = WoSEmailAlert.State.CITING_PUB_EXCERPT_NEXT
+
+        elif self._state == WoSEmailAlert.State.CITING_PUB_EXCERPT_NEXT:
+            self._current_pub_alert.text_from_pub = data
+            self._state = WoSEmailAlert.State.CITING_PUB_NEXT
+
+        elif data == "Terms of Use" and not self._state == WoSEmailAlert.State.DONE:
+            print(
+                "ERROR: WoS email parsing did not recognize email.",
+                file=sys.stderr)
+            sys.exit(1)
+
+        return None
+
+    def handle_starttag(self, tag, attrs):
+        return None
+
+    def handle_endtag(self, tag):
+        return None
 
 def sniff_class_for_alert(email):
     """
@@ -448,8 +614,14 @@ def sniff_class_for_alert(email):
     Old body text: starts with <html> tag.
     New body text: starts with <!DOCTYPE html> tag.
     """
-    #
-    if CURRENT_BODY_TEXT_START_TAG_RE.match(str(email.body_text)):
+    str_body_text = str(email.body_text)
+    if CURRENT_BODY_TEXT_START_TAG_RE.match(str_body_text):
         return WoSEmailAlert
-    else:
+    elif OLD_2018_2019_BODY_TEXT_START_TAG_RE.match(str_body_text):
+        return WoSEmailAlert201808To201911
+    elif OLD_2018_BEFORE_BODY_TEXT_START_TAG_RE.match(str_body_text):
         return WoSEmailAlert2018AndBefore
+    else:
+        print(
+            "Unrecognized WOS email header start.\n{0}", str_body_text,
+            file=sys.stderr)
