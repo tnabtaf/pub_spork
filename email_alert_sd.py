@@ -3,10 +3,9 @@
 """
 
 import re
-import base64  # emails from 2018/08 and before
-import quopri  # emails from 2018/08 and later
 import urllib.parse
 import html.parser
+import sys
 
 import publication
 import email_alert
@@ -56,8 +55,7 @@ class SDEmailAlert2018AndBefore(
         self.pub_alerts = []
         self.search = ""
         # SD email body content is base64 encoded before 2018/08
-        self._email_body_text = base64.standard_b64decode(
-            self._alert.body_text)
+        self._email_body_text = self._alert.body_text
         self._current_pub_alert = None
 
         self._in_search = False
@@ -207,9 +205,8 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._alert = email
         self.pub_alerts = []
         self.search = ""
-        # SD emails use quoted printable encoding.  Decode it.
-        self._email_body_text = quopri.decodestring(
-            self._alert.body_text).decode("utf-8")
+        self._email_body_text = self._alert.body_text
+            
         self._current_pub_alert = None
 
         self._in_td_depth = 0

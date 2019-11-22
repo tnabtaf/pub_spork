@@ -3,7 +3,6 @@
 
 import enum
 import html.parser
-import quopri                             # Emails after 2019/11/07
 import re
 import sys
 
@@ -26,15 +25,6 @@ SENDERS = [
 IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
-
-OLD_2018_BEFORE_BODY_TEXT_START_TAG_RE = re.compile(
-    r"[b'\\rn]*<html>")
-
-OLD_2018_2019_BODY_TEXT_START_TAG_RE = re.compile(
-    r"[b'\\rn]*<!DOCTYPE html>")
-
-CURRENT_BODY_TEXT_START_TAG_RE = re.compile(
-    r"[b'\\rn]*<html lang=")
 
 class WoSEmailAlert2018AndBefore(
         email_alert.EmailAlert, html.parser.HTMLParser):
@@ -298,7 +288,7 @@ Then followed by keywords and abstract.
         self._in_doi = False
         self._done = False
 
-        if WoSEmailAlert.expiration_notice_re.match(body_text):
+        if WoSEmailAlert201808To201911.expiration_notice_re.match(body_text):
             expiring_search = re.match(
                 r'.+?Your alert for <span.+?>&quot;\s*(.+?)&quot;',
                 body_text)
@@ -318,7 +308,7 @@ Then followed by keywords and abstract.
             return None                   # nothing to see here folks.
 
         if self._expecting_search:
-            if WoSEmailAlert.search_preface_re.match(data):
+            if WoSEmailAlert201808To201911.search_preface_re.match(data):
                 self._expecting_search = False
                 self._in_search_section = True
 
@@ -328,12 +318,12 @@ Then followed by keywords and abstract.
             self._expecting_count_section = True
 
         elif self._in_count_section:
-            self.expected_pub_count = int(WoSEmailAlert.count_re.match(
+            self.expected_pub_count = int(WoSEmailAlert201808To201911.count_re.match(
                 data).group(2))
             self._in_count_section = False
             self._expecting_pub_section = True
 
-        elif self._expecting_pub and WoSEmailAlert.paper_start_re.match(data):
+        elif self._expecting_pub and WoSEmailAlert201808To201911.paper_start_re.match(data):
             # Each paper starts with: "Record m of n. "
             self._current_pub = publication.Pub()
             self._current_pub_alert = pub_alert.PubAlert(
@@ -498,11 +488,10 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self.expected_pub_count = None
         self.found_pub_count = 0
 
-        # ye olde quoted printable encoding. Make it go away
-        body_text = quopri.decodestring(self._alert.body_text).decode("utf-8")
-
+        # ye olde quoted printable encoding.
         # strip out all the annoying "\r", "\n", "\t"s and wayward backslashes
-        self._email_body_text = re.sub(r"=?\\r|\\n|\\t|\\", "", body_text)
+        self._email_body_text = re.sub(
+            r"=?\\r|\\n|\\t|\\", "", self._alert.body_text)
 
         self._current_pub = None
 
@@ -614,14 +603,14 @@ def sniff_class_for_alert(email):
     Old body text: starts with <html> tag.
     New body text: starts with <!DOCTYPE html> tag.
     """
-    str_body_text = str(email.body_text)
-    if CURRENT_BODY_TEXT_START_TAG_RE.match(str_body_text):
+    if re.match(r"\s*<html lang=", email.body_text, re.MULTILINE):
         return WoSEmailAlert
-    elif OLD_2018_2019_BODY_TEXT_START_TAG_RE.match(str_body_text):
+    elif re.match(r"\s*<!DOCTYPE html>", email.body_text, re.MULTILINE):
         return WoSEmailAlert201808To201911
-    elif OLD_2018_BEFORE_BODY_TEXT_START_TAG_RE.match(str_body_text):
+    elif re.match(r"\s*<html>", email.body_text, re.MULTILINE):
         return WoSEmailAlert2018AndBefore
     else:
         print(
-            "Unrecognized WOS email header start.\n{0}", str_body_text,
+            "Unrecognized WOS email header start.\n{0}".format(email.body_text),
             file=sys.stderr)
+    return None

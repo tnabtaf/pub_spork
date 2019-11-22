@@ -6,12 +6,13 @@
 import sys
 import getpass
 import imaplib                            # Email protocol
-
+import base64
+import quopri
 import alert
 
 IS_EMAIL_SOURCE = True
 
-HEADER_PARTS = "(BODY.PEEK[HEADER.FIELDS (From Subject)])"
+HEADER_PARTS = "(BODY.PEEK[HEADER.FIELDS (From Subject Content-Transfer-Encoding)])"
 BODY_PARTS = "(BODY.PEEK[TEXT])"
 
 
@@ -21,6 +22,8 @@ class Email(object):
     """
     def __init__(self, header, body):
         self.header = header
+        self.body = body
+
         header_sender_subject = self.header[0][1].decode("utf-8")
         header_lines = header_sender_subject.split("\r\n")
         for line in header_lines:
@@ -28,9 +31,23 @@ class Email(object):
                 self.sender = line[6:]
             elif line[0:9] == "Subject: ":
                 self.subject = line[9:]
-
-        self.body = body
-        self.body_text = self.body[0][1]
+            elif line[0:27] == "Content-Transfer-Encoding: ":
+                # Decode email body before returning it
+                if line[27:] == "base64":
+                    self.body_text = base64.standard_b64decode(self.body[0][1])
+                elif line[27:] in ["quoted-printable", "binary"]:
+                    # Binary appears in NCBI emails, but they lie, I think
+                    self.body_text = str(quopri.decodestring(
+                        self.body[0][1]).decode("utf-8"))
+                    # TODO: Need to get UTF encoding from email header as well.
+                elif line[27:] in ["7bit", "8bit"]:
+                    self.body_text = self.body[0][1].decode("utf-8")
+                else:
+                    print(
+                        "ERROR: Unrecognized Content-Transfer-Encoding: "
+                        + "{0}".format(line), file=sys.stderr)
+                    print("   for email with subject: {0}".format(
+                        self.subject))
 
         return(None)
 

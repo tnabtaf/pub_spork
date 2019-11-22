@@ -2,7 +2,6 @@
 """Email pub alerts from Google Scholar."""
 
 import re
-import quopri                             # Quoted printable encoding
 import html.parser
 import urllib.parse
 
@@ -48,8 +47,7 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self.search = "Google: "
 
         # Google Scholar email body content is Quoted Printable encoded.
-        # Decode it.
-        self._email_body_text = quopri.decodestring(self._alert.body_text)
+        self._email_body_text = self._alert.body_text
 
         self._current_pub = None
         self._current_pub_alert = None
@@ -63,7 +61,7 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self._in_text_from_pub = False
 
         # process the HTML body text.
-        self.feed(self._email_body_text.decode('utf-8'))
+        self.feed(self._email_body_text)
 
         # If search was not in message body, then pull it from subject line
         if not self._search_processed:

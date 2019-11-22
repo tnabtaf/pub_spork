@@ -2,7 +2,6 @@
 """Email pub alerts from Wiley Online Library."""
 
 import re
-import quopri                             # Quoted printable encoding
 import html.parser
 
 import email_alert
@@ -41,9 +40,8 @@ class WileyEmailAlert2018AndBefore(
         self.pub_alerts = []
         self.search = "Wiley Online Library: "
 
-        # email uses Quoted Printable encoding Decode it.
-        decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
-        self._email_body_text = decoded
+        # email uses Quoted Printable encoding
+        self._email_body_text = self._alert.body_text
 
         self._current_pub = None
 
@@ -200,9 +198,8 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self.pub_alerts = []
         self.search = "Wiley Online Library: "
 
-        # email uses Quoted Printable encoding Decode it.
-        decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
-        self._email_body_text = decoded
+        # email uses Quoted Printable encoding.
+        self._email_body_text = self._alert.body_text
 
         self._current_pub = None
 
@@ -350,8 +347,7 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self.search = "Wiley Online Library: "
 
         # email uses Quoted Printable encoding Decode it.
-        decoded = quopri.decodestring(self._alert.body_text).decode('utf-8')
-        self._email_body_text = decoded
+        self._email_body_text = self._alert.body_text
 
         self._current_pub = None
         self._state = None

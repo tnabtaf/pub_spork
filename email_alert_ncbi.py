@@ -2,7 +2,6 @@
 """Handle publication alerts from MyNCBI."""
 
 import html.parser
-import quopri
 
 import email_alert
 import pub_alert
@@ -28,8 +27,8 @@ class NCBIEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         self.pub_alerts = []
         self.search = "My NCBI: "
 
-        # email from NCBI uses Quoted Printable encoding.  Unencode it.
-        decoded = str(quopri.decodestring(email.body_text))
+        # email from NCBI uses Quoted Printable encoding.
+        decoded = email.body_text
         # strip out all the annoying "\r", "\n", "\t"s and quotes.
         decoded = decoded.replace("\\r", "")
         decoded = decoded.replace("\\n", "")
