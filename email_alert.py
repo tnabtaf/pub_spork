@@ -32,15 +32,16 @@ class Email(object):
             elif line[0:9] == "Subject: ":
                 self.subject = line[9:]
             elif line[0:27] == "Content-Transfer-Encoding: ":
+                self.encoding = line[27:]
                 # Decode email body before returning it
-                if line[27:] == "base64":
+                if self.encoding == "base64":
                     self.body_text = base64.standard_b64decode(self.body[0][1])
-                elif line[27:] in ["quoted-printable", "binary"]:
+                elif self.encoding in ["quoted-printable", "binary"]:
                     # Binary appears in NCBI emails, but they lie, I think
                     self.body_text = str(quopri.decodestring(
                         self.body[0][1]).decode("utf-8"))
                     # TODO: Need to get UTF encoding from email header as well.
-                elif line[27:] in ["7bit", "8bit"]:
+                elif self.encoding in ["7bit", "8bit"]:
                     self.body_text = self.body[0][1].decode("utf-8")
                 else:
                     print(
