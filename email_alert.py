@@ -12,7 +12,8 @@ import alert
 
 IS_EMAIL_SOURCE = True
 
-HEADER_PARTS = "(BODY.PEEK[HEADER.FIELDS (From Subject Content-Transfer-Encoding)])"
+HEADER_PARTS = (
+    "(BODY.PEEK[HEADER.FIELDS (From Subject Content-Transfer-Encoding)])")
 BODY_PARTS = "(BODY.PEEK[TEXT])"
 
 

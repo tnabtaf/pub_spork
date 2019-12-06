@@ -14,7 +14,6 @@ import lib_types
 import known_pub_db
 import html_report
 import pub_match
-import publication
 
 DOT_PROXY_OPTION = "dot"
 DASH_PROXY_OPTION = "dash"

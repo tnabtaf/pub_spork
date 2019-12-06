@@ -16,6 +16,7 @@ RED_MAX = max(RED_RANGE)
 GREEN_MAX = max(GREEN_RANGE)
 BLUE_MAX = max(BLUE_RANGE)
 
+
 def gen_header():
     """Create an HTML header."""
     return (

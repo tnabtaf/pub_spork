@@ -409,7 +409,7 @@ class PubMatchDB(object):
                         div_style = (  # deemphasize it
                             "background-color: #cccccc; color: #999999; ")
                 if pm._lib_pub:
-                    state_text+= " (" + ", ".join(pm._lib_pub.tags) + ")"
+                    state_text += " (" + ", ".join(pm._lib_pub.tags) + ")"
                 known_count += 1
                 counter = known_count
             else:                 # It's a previously unknown pub.

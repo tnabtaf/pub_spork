@@ -4,14 +4,12 @@
 Bootstrap is basically HTML + Bootstrap.
 """
 
-import math
-
 import html_report
 
 
 def gen_header():
     """Generate a header for Bootstrap.  Use HTML header."""
-    return html.get_header()
+    return html_report.gen_header()
 
 
 def gen_footer():
@@ -25,14 +23,14 @@ def gen_year_report(lib, years_ordered):
 
     If you want a color scale then call the HTML version of this routine.
     """
-    tag_markup  = []
+    tag_markup = []
     # Header
 
     # Years
     n_papers_across_years = 0
     for year in years_ordered:
         n_papers_across_years += len(lib.get_pubs(year=year))
-    
+
     for year in years_ordered:
         n_papers_this_year = len(lib.get_pubs(year=year))
         tag_markup.append(
@@ -69,7 +67,6 @@ def gen_journal_report(lib):
         jrnl_idx += 1
         n_current_pubs = len(jrnl_pubs)
         if n_prior_pubs != n_current_pubs:
-            rank = jrnl_idx
             n_prior_pubs = n_current_pubs
         report.append(
             '<div class="btn" '
@@ -84,7 +81,7 @@ def gen_journal_report(lib):
 def gen_tag_year_report(lib, tags_ordered, n_papers_w_tag, years_ordered):
     """
     Generate a tagyear report in Markdown format.
-    
+
     Can't do this with buttons. Nope. This report is a table. Full stop.
     """
     return "Can't generate a gen_tag_year_report in bootstrap-buttons format."
@@ -94,8 +91,8 @@ def gen_tag_count_date_range_report(tags_in_count_order, n_total_papers,
                                     lib, num_tag_column_groups,
                                     start_date, end_date):
     """
-    Generate a list of Bootstrap buttons with with each entry showing the 
-    tag name preceded by the number of papers tagged with that tag during 
+    Generate a list of Bootstrap buttons with with each entry showing the
+    tag name preceded by the number of papers tagged with that tag during
     the given date range.
 
     num_tag_column_groups is ignored.

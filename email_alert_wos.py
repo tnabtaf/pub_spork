@@ -19,12 +19,13 @@ SENDERS = [
     "noreply@isiknowledge.com",
     "noreply@webofscience.com",
     "noreply@clarivate.com",
-    "alerts-noreply@clarivate.com" # Starting on 2019/11/07
+    "alerts-noreply@clarivate.com"  # Starting on 2019/11/07
     ]
 
 IS_EMAIL_SOURCE = True
 
 SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
+
 
 class WoSEmailAlert2018AndBefore(
         email_alert.EmailAlert, html.parser.HTMLParser):
@@ -172,7 +173,9 @@ class WoSEmailAlert2018AndBefore(
         return None
 
 
-class WoSEmailAlert201808To201911(email_alert.EmailAlert, html.parser.HTMLParser):
+class WoSEmailAlert201808To201911(
+        email_alert.EmailAlert,
+        html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
     Parse HTML email body from Web Of Science. The body maybe reporting
@@ -318,12 +321,13 @@ Then followed by keywords and abstract.
             self._expecting_count_section = True
 
         elif self._in_count_section:
-            self.expected_pub_count = int(WoSEmailAlert201808To201911.count_re.match(
-                data).group(2))
+            self.expected_pub_count = int(
+                WoSEmailAlert201808To201911.count_re.match(data).group(2))
             self._in_count_section = False
             self._expecting_pub_section = True
 
-        elif self._expecting_pub and WoSEmailAlert201808To201911.paper_start_re.match(data):
+        elif (self._expecting_pub
+              and WoSEmailAlert201808To201911.paper_start_re.match(data)):
             # Each paper starts with: "Record m of n. "
             self._current_pub = publication.Pub()
             self._current_pub_alert = pub_alert.PubAlert(
@@ -432,6 +436,7 @@ Then followed by keywords and abstract.
 
         return None
 
+
 class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """All the information in a Web of Science Email.
 
@@ -476,7 +481,6 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     citing_pubs_over_re = re.compile(
         r"Showing \d+ of \d+ citations?")
 
-
     def __init__(self, email):
 
         html.parser.HTMLParser.__init__(self)
@@ -514,7 +518,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
     def handle_data(self, data):
         # eliminate leading, trailing, and multiple embedded spaces
-        data = re.sub('\s+', ' ', data).strip()
+        data = re.sub(r'\s+', ' ', data).strip()
         if data == "":
             return None                   # nothing to see here folks.
 
@@ -531,13 +535,16 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         # Search alert states
         elif self._state == WoSEmailAlert.State.SAVED_SEARCH_TYPE_NEXT:
             self.search += data + " "
-            self._state = WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT
+            self._state = (
+                WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT)
 
-        elif self._state == WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT:
-            # form: "(Title or search string) has 0 new records as of Mon XXth YYYY."
+        elif (self._state
+              == WoSEmailAlert.State.SAVED_SEARCH_STRING_AND_COUNT_NEXT):
+            # form: "(Title or search) has 0 new records as of Mon XXth YYYY."
             # We Just want the title or search string. Match to "has" in case
             # title has parens in it.
-            self.search += WoSEmailAlert.saved_search_string_re.match(data).group(1)
+            self.search += WoSEmailAlert.saved_search_string_re.match(
+                data).group(1)
             self._state = WoSEmailAlert.State.DONE
 
         # Citation alert states
@@ -563,7 +570,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         elif self._state == WoSEmailAlert.State.CITING_PUB_AUTHORS_NEXT:
             # WoS author list looks like:
-            #  Halbritter, Dale A.; Storer, Caroline G.; Kawahara, Akito Y.; Daniels, Jaret C.
+            #  Halbritter, Dale A.; Storer, Caroline G.; Kawahara, Akito Y.
             canonical_first_author = publication.to_canonical(
                 data.split(",")[0])
             self._current_pub.set_authors(data, canonical_first_author)
@@ -577,7 +584,8 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._current_pub_alert.text_from_pub = data
             self._state = WoSEmailAlert.State.CITING_PUB_NEXT
 
-        elif data == "Terms of Use" and not self._state == WoSEmailAlert.State.DONE:
+        elif (data == "Terms of Use"
+              and not self._state == WoSEmailAlert.State.DONE):
             print(
                 "ERROR: WoS email parsing did not recognize email.",
                 file=sys.stderr)
@@ -590,6 +598,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
     def handle_endtag(self, tag):
         return None
+
 
 def sniff_class_for_alert(email):
     """
@@ -611,6 +620,7 @@ def sniff_class_for_alert(email):
         return WoSEmailAlert2018AndBefore
     else:
         print(
-            "Unrecognized WOS email header start.\n{0}".format(email.body_text),
+            "Unrecognized WOS email header start.\n{0}".format(
+                email.body_text),
             file=sys.stderr)
     return None

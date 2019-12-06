@@ -19,7 +19,6 @@ SUBJECT_START_2018_LEN = len(SUBJECT_START_2018)
 CURRENT_CITATION_SUBJECT = "Article Event Alert"
 
 
-
 class WileyEmailAlert2018AndBefore(
         email_alert.EmailAlert, html.parser.HTMLParser):
     """
@@ -144,7 +143,7 @@ class WileyEmailAlert2018AndBefore(
 
     def handle_endtag(self, tag):
 
-        if self._in_search and tag == "strong":  #2018
+        if self._in_search and tag == "strong":  # 2018
             self._in_search = False
             self._awaiting_title = True
         elif self._in_title and tag == "a":
@@ -168,6 +167,7 @@ class WileyEmailAlert2018AndBefore(
             self._awaiting_title = True   # in case there are more
 
         return(None)
+
 
 class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
@@ -294,10 +294,10 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_endtag(self, tag):
 
         if (self._state == WileyEmailAlert.STATE_AWAITING_SEARCH
-            and tag == "strong"):  # 2019
+                and tag == "strong"):  # 2019
             self._state = WileyEmailAlert.STATE_IN_SEARCH
         elif (self._state == WileyEmailAlert.STATE_IN_SEARCH
-              and tag == "div"):  #2019
+                and tag == "div"):  # 2019
             self._state = WileyEmailAlert.STATE_AWAITING_TITLE
         elif self._state == WileyEmailAlert.STATE_IN_TITLE and tag == "a":
             self._state = WileyEmailAlert.STATE_AWAITING_JOURNAL
@@ -311,10 +311,10 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         Process tags like IMG and BR that don't have end tags.
         """
         if (self._state == WileyEmailAlert.STATE_AWAITING_AUTHORS
-            and tag == "br"):
+                and tag == "br"):
             self._state = WileyEmailAlert.STATE_IN_AUTHORS
         elif self._state == WileyEmailAlert.STATE_IN_AUTHORS and tag == "br":
-            self._state = WileyEmailAlert.STATE_AWAITING_TITLE 
+            self._state = WileyEmailAlert.STATE_AWAITING_TITLE
 
         return(None)
 
@@ -360,10 +360,12 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
 
         if tag == "h5":
-            self._state = WileyEmailCitationAlert.STATE_IN_SEARCH  # only 1 h5; wraps pub being cited.
-        elif (tag =="p"
+            # only 1 h5; wraps pub being cited.
+            self._state = WileyEmailCitationAlert.STATE_IN_SEARCH
+        elif (tag == "p"
               and self._state == WileyEmailCitationAlert.STATE_IN_PUB_LIST):
-            self._state = WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE
+            self._state = (
+                WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE)
             self._current_pub = publication.Pub()
             self.pub_alerts.append(pub_alert.PubAlert(self._current_pub, self))
         elif (
@@ -373,23 +375,24 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # Just entered an author.
             self._state = WileyEmailCitationAlert.STATE_IN_AUTHOR
         elif (tag == "em"
-              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+              and self._state
+              == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
             # em here means journal, I sure hope.
             self._state = WileyEmailCitationAlert.STATE_IN_JOURNAL
         elif (tag == "strong"
-              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+              and self._state
+              == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
             self._state = WileyEmailCitationAlert.STATE_IN_VOLUME
         elif (tag == "hr"
               and self._state == WileyEmailCitationAlert.STATE_IN_PUB_LIST):
             self._state = WileyEmailCitationAlert.STATE_DONE
         return (None)
 
-
     YEAR_RE = re.compile(r"\([12][0-9][0-9][0-9]\)\.$")
 
     def handle_title_section_data(self, data):
         """
-        Title sections are complicated. As of May 2019, title sections look like
+        Title sections be complicated. As of May 2019, title sections look like
 
            Dissecting the Control of Flowering Time in Grasses
            Using Brachypodium distachyon,
@@ -428,10 +431,10 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             if WileyEmailCitationAlert.YEAR_RE.search(data):
                 self._current_pub.ref += data
             else:  # gotta be (gotta be!) title
-                self._current_pub.set_title(self._current_pub.title + " " + data)
+                self._current_pub.set_title(
+                    self._current_pub.title + " " + data)
 
         return None
-
 
     def handle_data(self, data):
 
@@ -448,7 +451,8 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._current_pub.set_authors(
                 self._current_pub.authors + " " + data,
                 canonical_first_author)
-        elif self._state == WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE:
+        elif (self._state
+              == WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE):
             # could be an author list joiner ", " or "and" or start of title
             if data in [",", "and"]:
                 # still in author list
@@ -471,18 +475,18 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         return(None)
 
-
     def handle_endtag(self, tag):
 
         if (tag == "h5"
-            and self._state == WileyEmailCitationAlert.STATE_IN_SEARCH):
+                and self._state == WileyEmailCitationAlert.STATE_IN_SEARCH):
             self._state = WileyEmailCitationAlert.STATE_AWAITING_PUBS
         elif (tag == "h2"
               and self._state == WileyEmailCitationAlert.STATE_AWAITING_PUBS):
             self._state = WileyEmailCitationAlert.STATE_IN_PUB_LIST
         elif (tag == "span"
               and self._state == WileyEmailCitationAlert.STATE_IN_AUTHOR):
-            self._state = WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE
+            self._state = (
+                WileyEmailCitationAlert.STATE_AWAITING_AUTHOR_OR_TITLE)
         elif (tag == "em"
               and self._state == WileyEmailCitationAlert.STATE_IN_JOURNAL):
             self._state = WileyEmailCitationAlert.STATE_IN_DOI
@@ -490,7 +494,8 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
               and self._state == WileyEmailCitationAlert.STATE_IN_VOLUME):
             self._state = WileyEmailCitationAlert.STATE_IN_REF_TAIL
         elif (tag == "p"
-              and self._state == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
+              and self._state
+              == WileyEmailCitationAlert.STATE_IN_TITLE_SECTION):
             self._state = WileyEmailCitationAlert.STATE_IN_PUB_LIST
 
         return (None)

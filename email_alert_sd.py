@@ -5,7 +5,6 @@
 import re
 import urllib.parse
 import html.parser
-import sys
 
 import publication
 import email_alert
@@ -192,7 +191,7 @@ class SDEmailAlert2018To2019(email_alert.EmailAlert, html.parser.HTMLParser):
 
     STATE_IN_H1 = "In H1"
     STATE_IN_SEARCH = "In Search"
-    STATE_IN_PUB_TITLE ="In Pub Title"
+    STATE_IN_PUB_TITLE = "In Pub Title"
     STATE_EXPECTING_PUB_TYPE = "Expecting Pub Type"
     STATE_EXPECTING_REF = "Expecting Ref"
     STATE_IN_REF = "In Ref"
@@ -276,34 +275,47 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
                 self._current_pub_alert = pub_alert.PubAlert(pub, self)
                 self.pub_alerts.append(self._current_pub_alert)
 
-            elif tag == "a" and self._state == SDEmailAlert2018To2019.STATE_IN_PUB_TITLE:
+            elif (tag == "a"
+                  and self._state
+                  == SDEmailAlert2018To2019.STATE_IN_PUB_TITLE):
                 # pub title is the content of the a tag.
                 # pub URL is where the a tag points to.
                 full_url = urllib.parse.unquote(attrs[0][1])
 
                 # Current email links look like Either
                 #  https://cwhib9vv.r.us-east-1.awstrack.me/L0/
-                #   https:%2F%2Fwww.sciencedirect.com%2Fscience%2Farticle%2Fpii%2FB9780128156094000108
-                #   %3Fdgcid=raven_sd_search_email/1/01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
+                #   https:%2F%2Fwww.sciencedirect.com%2Fscience
+                #   %2Farticle%2Fpii%2FB9780128156094000108
+                #   %3Fdgcid=raven_sd_search_email/1/
+                #   01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-
+                #   000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
                 #
                 #  We want the middle part, the second HTTPS.
                 #  Proxy links won't work with full redirect URL
                 # OR
-                #  https://www.sciencedirect.com/science/article/pii/S0262407919306967?dgcid=raven_sd_search_email
+                #  https://www.sciencedirect.com/science/article/pii/
+                #  S0262407919306967?dgcid=raven_sd_search_email
                 try:
                     minus_redirect = "https" + full_url.split("https")[2]
-                    self._current_pub_alert.pub.url = minus_redirect.split("?")[0]
+                    self._current_pub_alert.pub.url = minus_redirect.split(
+                        "?")[0]
                 except IndexError:
                     self._current_pub_alert.pub.url = full_url
                 self._current_pub_alert.pub.title = ""
 
-            elif tag == "p" and self._state == SDEmailAlert2018To2019.STATE_EXPECTING_PUB_TYPE:
+            elif (tag == "p"
+                  and self._state
+                  == SDEmailAlert2018To2019.STATE_EXPECTING_PUB_TYPE):
                 self._state = SDEmailAlert2018To2019.STATE_EXPECTING_REF
 
-            elif tag == "p" and self._state == SDEmailAlert2018To2019.STATE_EXPECTING_REF:
+            elif (tag == "p"
+                  and self._state
+                  == SDEmailAlert2018To2019.STATE_EXPECTING_REF):
                 self._state = SDEmailAlert2018To2019.STATE_IN_REF
 
-            elif tag == "p" and self._state == SDEmailAlert2018To2019.STATE_EXPECTING_AUTHORS:
+            elif (tag == "p"
+                  and self._state
+                  == SDEmailAlert2018To2019.STATE_EXPECTING_AUTHORS):
                 self._state = SDEmailAlert2018To2019.STATE_IN_AUTHORS
 
         return(None)
@@ -312,7 +324,8 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
         data = data.strip()
 
         if not self._state == SDEmailAlert2018To2019.STATE_DONE:
-            if self._state == SDEmailAlert2018To2019.STATE_IN_H1 and data == "Showing top results for search alert:":
+            if (self._state == SDEmailAlert2018To2019.STATE_IN_H1
+                    and data == "Showing top results for search alert:"):
                 self._state = SDEmailAlert2018To2019.STATE_IN_SEARCH
             elif self._state == SDEmailAlert2018To2019.STATE_IN_SEARCH:
                 self.search = "ScienceDirect search: " + data
@@ -332,7 +345,9 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
     def handle_endtag(self, tag):
 
         if not self._state == SDEmailAlert2018To2019.STATE_DONE:
-            if tag == "a" and self._state == SDEmailAlert2018To2019.STATE_IN_PUB_TITLE:
+            if (tag == "a"
+                    and self._state
+                    == SDEmailAlert2018To2019.STATE_IN_PUB_TITLE):
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title.strip())
                 self._state = SDEmailAlert2018To2019.STATE_EXPECTING_PUB_TYPE
@@ -393,7 +408,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     # debugging a challenge.  Now have one state attribute.
 
     STATE_IN_H2 = "In H2"
-    STATE_IN_CITING_PUB_TITLE ="In Citing Pub Title"
+    STATE_IN_CITING_PUB_TITLE = "In Citing Pub Title"
     STATE_EXPECTING_CITING_JOURNAL = "Expecting Citing Journal"
     STATE_IN_CITING_JOURNAL = "In Citing Jounral"
     STATE_EXPECTING_CITING_AUTHORS = "Expecting Citing Authors"
@@ -438,13 +453,17 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
             # Current email links look like Either
             #  https://cwhib9vv.r.us-east-1.awstrack.me/L0/
-            #   https:%2F%2Fwww.sciencedirect.com%2Fscience%2Farticle%2Fpii%2FB9780128156094000108
-            #   %3Fdgcid=raven_sd_search_email/1/01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
+            #   https:%2F%2Fwww.sciencedirect.com%2Fscience%2F
+            #   article%2Fpii%2FB9780128156094000108
+            #   %3Fdgcid=raven_sd_search_email/1/
+            #   01000164f4ef81a4-8297928b-681a-463a-86c6-30f8eaf2bd7e-
+            #   000000/_ewE29jTmNGAovSLl4HHgzWfTRQ=68
             #
             #  We want the second HTTPS up to the firs number after pii
             #  Proxy links won't work with full redirect URL
             # OR
-            #  https://www.sciencedirect.com/science/article/pii/S0262407919306967
+            #  https://www.sciencedirect.com/science/article/pii/
+            #  S0262407919306967
             try:
                 minus_redirect = "https" + full_url.split("https")[2]
                 pii_num_only = minus_redirect.split("/")[6]
@@ -455,7 +474,9 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._current_pub_alert.pub.set_title("")
             self._state = SDEmailAlert.STATE_IN_CITING_PUB_TITLE
 
-        elif tag == "span" and self._state == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL:
+        elif (tag == "span"
+              and self._state
+              == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL):
             self._state = SDEmailAlert.STATE_IN_CITING_JOURNAL
 
         return(None)
@@ -486,10 +507,13 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
     def handle_endtag(self, tag):
 
-        if tag == "a" and self._state == SDEmailAlert.STATE_IN_CITING_PUB_TITLE:
+        if (tag == "a"
+                and self._state == SDEmailAlert.STATE_IN_CITING_PUB_TITLE):
             self._state = SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL
 
-        elif tag == "p" and self._state == SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS:
+        elif (tag == "p"
+              and self._state
+              == SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS):
             # ain't no authors listed.  It happens
             self._current_pub_alert.pub.set_authors("", "")
             self._state = None
