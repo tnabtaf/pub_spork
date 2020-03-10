@@ -12,36 +12,29 @@ import publication
 
 # Zotero URLs
 #
+# In early 2020 or late 2019, Zotero updated how it handles URLS for tags.
 # User library
-#  https://www.zotero.org/tnabtaf/items
+# https://www.zotero.org/tnabtaf/library
 #
 # Group Library
-#  https://www.zotero.org/groups/1724202/testing_groups/items
-#
-# Particular pub in a user lib
-#  https://www.zotero.org/tnabtaf/items/itemKey/CA6MRM7W
-#
-# Particular tag in a user library
-#  https://www.zotero.org/tnabtaf/items/tag/cloud/
+#  https://www.zotero.org/groups/1732893/galaxy/library
 #
 # Particular tag in a group library
+#  https://www.zotero.org/groups/1732893/galaxy/tags/%2BTools
+#
+# Particular Pub in a group library
+#  https://www.zotero.org/groups/1732893/galaxy/items/KJS7VDEU
 #
 # AND search for two tags in a user library
-#  https://www.zotero.org/tnabtaf/items/tag/cloud/tag/ultimate
+#  https://www.zotero.org/groups/1732893/galaxy/tags/%2BStellar,%2BTools/library
 #
-# AND serach for one tag and one term in Title, creator, year only
-#  https://www.zotero.org/tnabtaf/items/q/2015/tag/cloud
+# AND serach for one tag and one term ("analytic") in Title, creator, year only
+#  https://www.zotero.org/groups/1732893/galaxy/tags/%2BTools/search/analytic/titleCreatorYear/item-list
 #
-# AND search for one tag and onoe term in all fields
-#  https://www.zotero.org/tnabtaf/items/q/2015/qmode/everything/tag/cloud
+# AND search for one tag and one term in all fields
+#  https://www.zotero.org/groups/1732893/galaxy/tags/%2BTools/search/analytic/everything/item-list
 #
-# search in a user library, Title, creator and year only
-#  https://www.zotero.org/tnabtaf/items/q/afgan
 #
-# search in a user library, Title, all fields
-#  https://www.zotero.org/tnabtaf/items/q/afgan/qmode/everything
-#
-# Does not appear to support AND/OR searches. Can do that through client.
 # Group library in CSV format
 #
 
@@ -138,13 +131,13 @@ class PubLibrary(publication.PubLibrary):
         self.is_user_lib = False
         self.is_group_lib = False
         url_parts = urllib.parse.urlparse(self.url)
-        # /groups/1724202/testing_groups/items
+        # /groups/1732893/galaxy/
         if url_parts.path.startswith("/groups/"):
             self.is_group_lib = True
             parts = url_parts.path.split("/")
             self._zot_group_id = parts[2]
             self._zot_group_name = parts[3]
-        else:  # https://www.zotero.org/tnabtaf/items
+        else:  # https://www.zotero.org/tnabtaf/
             self.is_user_lib = True
             self._zot_username = url_parts.path.split("/")[1]
 
@@ -162,11 +155,10 @@ class PubLibrary(publication.PubLibrary):
 
     def gen_tag_url(self, tag, sort_by_add_date=False):
         """Given a tag, generate the URL that shows all papers with that tag.
+        Used to support sorting by date added, but Zotero dropped that feature
+        in late 2019/early 2020.  (Can still do it, but not via a URL.)
         """
-        tag_url = self.url
-        if sort_by_add_date:
-            tag_url += "order/dateAdded/sort/desc/"
-        tag_url += "tag/" + tag
+        tag_url = self.url + "tags/" + tag
 
         return tag_url
 
@@ -189,7 +181,7 @@ class PubLibrary(publication.PubLibrary):
     def gen_pub_url_in_lib(self, pub):
         """given a pub in this library, generate a link to it online."""
 
-        pub_url = self.url + "/itemKey/" + pub.zotero_id
+        pub_url = self.url + "/items/" + pub.zotero_id
         return pub_url
 
 
