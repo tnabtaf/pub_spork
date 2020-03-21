@@ -33,6 +33,8 @@ class PubMatch(object):
         self.set_lib_pub(lib_pub)
         self._pub_alerts = []
         self._known_pub = None
+        # track if all alerts for this pub are exclude alerts.
+        self._all_excludes = False
         self.add_pub_alerts(pub_alerts)
 
         return None
@@ -54,6 +56,9 @@ class PubMatch(object):
     def is_lib_pub(self):
         """Return true if this pub exists in library."""
         return self._lib_pub
+
+    def is_all_excludes(self):
+        return self._all_excludes
 
     def set_lib_pub(self, lib_pub):
         if lib_pub:
@@ -104,6 +109,14 @@ class PubMatch(object):
                 self.canonical_first_author):
             # First authors are also really noisy.
             self.canonical_first_author = pub_alert.pub.canonical_first_author
+
+        # Track if this pub_match has all exclude alerts.
+        if len(self._pub_alerts) == 1 and pub_alert.alert.exclude:
+            # first pub alert, and it's an exclude
+            self._all_excludes = True
+        else:
+            self._all_excludes = self._all_excludes and pub_alert.alert.exclude
+
         return self._pub_alerts
 
     def add_pub_alerts(self, pub_alerts):
@@ -177,6 +190,12 @@ class PubMatch(object):
                     pub_url = pub_alert.pub.url
                     break
         return pub_url
+
+    def get_first_alert_search(self):
+        """
+        Return the search name / text for first search in this pub_match.
+        """
+        return self._pub_alerts[0].alert.search
 
     def to_html(self, exclude_db):
         """Render the PubMatch in HTML."""
@@ -400,8 +419,10 @@ class PubMatchDB(object):
         information in the generated HTML.
         """
         output = []
+        exclude_only_output = []
         known_count = 0
         new_count = 0
+        exclude_only_count = 0
         for pm in self.get_matchups_with_alerts_sorted_by_title():
             if pm.is_known():
                 state_text = "Known"
@@ -422,25 +443,36 @@ class PubMatchDB(object):
                     state_text += " (" + ", ".join(pm._lib_pub.tags) + ")"
                 known_count += 1
                 counter = known_count
+                which_output = output
+
+            elif pm._all_excludes:
+                state_text = "Exclude"
+                div_style = "background-color: #ffffee; "
+                exclude_only_count += 1
+                counter = exclude_only_count
+                which_output = exclude_only_output
+
             else:                 # It's a previously unknown pub.
                 state_text = "New"
                 div_style = "background-color: #eeeeff; "
                 new_count += 1
                 counter = new_count
-            output.append(
+                which_output = output
+
+            which_output.append(
                 '<div style="' + div_style
                 + 'border: 1px solid #bbbbbb; '
                 + 'margin: 1em 0.5em; '
                 + 'padding-left: 1em; padding-right: 1em;">')
-            output.append(
+            which_output.append(
                 '<p style="font-size: 160%;">{0}. {1}</p>'.format(
                     counter, state_text))
-            output.append(pm.to_html(exclude_db))
+            which_output.append(pm.to_html(exclude_db))
 
             # Matchup described; now add additional information
-            output += additional_info_callback(pm)
+            which_output += additional_info_callback(pm)
 
-        return '\n'.join(output)
+        return '\n'.join(output) + '\n'.join(exclude_only_output)
 
     def get_matchups_without_known_pub(self):
         """Return list of all PubMatches that don't have a known pub.

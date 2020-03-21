@@ -267,7 +267,7 @@ def match_pubs(command_line_args):
         known_pubs_db = known_pub_db.KnownPubDB(args.knownpubsin)
 
     # read in the list of exclude searches; will be empty if there are none
-    alert_excludes = alert.ExcludeAlertsDB(args.excludesearches)
+    exclude_db = alert.ExcludeAlertsDB(args.excludesearches)
 
     # Get all alerts
     pub_alerts = []
@@ -297,6 +297,10 @@ def match_pubs(command_line_args):
                 connection.module.SENDERS, mailbox=args.mailbox,
                 since=args.since, before=args.before))
 
+    # Identify which pub_alerts are exclude alerts.  Label as such
+    for pa in pub_alerts:
+        pa.alert.exclude = exclude_db.is_an_exclude_alert(pa.alert)
+
     ok_dup_titles = []    # List of titles that it's ok to have duplicates of.
     if command_line_args.okduplicatetitles:
         dup_titles_file = open(command_line_args.okduplicatetitles, 'r')
@@ -315,12 +319,12 @@ def match_pubs(command_line_args):
     curation_page.write(html_report.gen_header())
     curation_page.write(
         pub_matchups.matchups_with_pub_alerts_to_html(
-            alert_excludes, pub_match_link_list_html))
+            exclude_db, pub_match_link_list_html))
     curation_page.write(html_report.gen_footer())
     curation_page.close()
 
     if args.knownpubsout:
-        # update known pubs DB to include and pubs we didn't know about before.
+        # update known pubs DB to include any pubs we didn't know about before.
         # What didn't we know about before?  Anything without a known pub.
 
         if not known_pubs_db:

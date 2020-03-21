@@ -179,12 +179,18 @@ class KnownPubDB(object):
             known_pub.set_title(pub_match.get_pub_title())
             known_pub.set_authors(pub_match.get_pub_authors())
             known_pub.set_doi(pub_match.get_pub_doi())
-            if pub_match.is_lib_pub():
-                known_pub.set_state(STATE_INLIB)
+            if pub_match.is_all_excludes():
+                known_pub.set_state(STATE_EXCLUDE)
+                if not known_pub.get_annotation():
+                    known_pub.set_annotation(
+                        pub_match.get_first_alert_search())
             else:
-                known_pub.set_state(STATE_NEW)
-            known_pub.set_annotation("")
-            known_pub.set_qualifier("")
+                if pub_match.is_lib_pub():
+                    known_pub.set_state(STATE_INLIB)
+                else:
+                    known_pub.set_state(STATE_NEW)
+                known_pub.set_annotation("")
+                known_pub.set_qualifier("")
             self.add_known_pub(known_pub)
 
         return None
@@ -213,7 +219,7 @@ class KnownPubDB(object):
             entry_state = entry.get_state()
             if entry_state in [STATE_NEW, STATE_WAIT]:
                 active_entries.append(entry)
-            elif entry_state in [STATE_EXCLUDE,STATE_IGNORE, STATE_INLIB]:
+            elif entry_state in [STATE_EXCLUDE, STATE_IGNORE, STATE_INLIB]:
                 past_entries.append(entry)
             else:
                 print(
