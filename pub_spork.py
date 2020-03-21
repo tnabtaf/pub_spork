@@ -132,6 +132,14 @@ def get_args():
             + "and are in fact not duplicate titles.  These will not get "
             + "reported as duplicates."))
     match_args.add_argument(
+        "--excludesearches", required = False,
+        help=(
+            "Exclude searches look for matches that we want to exclude "
+            + "from our results. These are useful because it is sometimes "
+            + "easier to list each exclude search, each in a separate search "
+            + "then to include all the excludes in each search (and "
+            + "sometimes we can't make the search that long)."))
+    match_args.add_argument(
         "--curationpage", required=False,
         help=(
             "Where to put the HTML page listing all the pubs. Required for "

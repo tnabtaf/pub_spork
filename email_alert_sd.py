@@ -20,14 +20,13 @@ SENDERS = [
     SENDER_CURRENT
     ]
 
+IS_EMAIL_SOURCE = True
+SOURCE_NAME_TEXT = "ScienceDirect Email"            # used in messages
+
 SD_BASE_URL = "https://www.sciencedirect.com"
 SD_ARTICLE_BASE = "/science/article/pii/"
 SD_ARTICLE_BASE_URL = SD_BASE_URL + SD_ARTICLE_BASE
 # proxy string goes in between base url and article base.
-
-IS_EMAIL_SOURCE = True
-
-SOURCE_NAME_TEXT = "ScienceDirect Email"                    # used in messages
 
 CURRENT_SUBJECT_START_RE = re.compile(
     r'New [sS]earch (Alert|results) for (.+)')
@@ -328,7 +327,7 @@ line-height:24px;font-family:Arial,Helvetica;margin-bottom:2px">
                     and data == "Showing top results for search alert:"):
                 self._state = SDEmailAlert2018To2019.STATE_IN_SEARCH
             elif self._state == SDEmailAlert2018To2019.STATE_IN_SEARCH:
-                self.search = "ScienceDirect search: " + data
+                self.search = data
             elif self._state == SDEmailAlert2018To2019.STATE_IN_PUB_TITLE:
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title + data + " ")
@@ -425,8 +424,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         # get Search from email subject:
         #   New search results for s: Langille
         self.search = (
-            "ScienceDirect search: "
-            + CURRENT_SUBJECT_START_RE.match(email.subject).group(2))
+            CURRENT_SUBJECT_START_RE.match(email.subject).group(2))
 
         self._email_body_text = self._alert.body_text
 

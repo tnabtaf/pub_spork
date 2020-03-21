@@ -17,7 +17,8 @@ STATE_NEW = "new"             # Not in library, and hasn't been curated yet.
 STATE_INLIB = "inlib"         # Is in library of papers
 STATE_IGNORE = "ignore"       # Looked at, wasn't relevant or can't add
 STATE_WAIT = "wait"           # Looked at, but waiting on something to decide
-STATE_CANT_GUESS = "cant-guess"
+STATE_EXCLUDE = "exclude"     # Pub reported by an exclude aler, meaning, it
+                              # is almost certainly a false positive. 
 
 # This state should never get wriiten out. Exists only in memory.
 STATE_DONT_KNOW_YET = "dont-know-yet"
@@ -130,7 +131,7 @@ class KnownPubDBEntry(object):
 
 
 class KnownPubDB(object):
-    """A database of known publicatoins."""
+    """A database of known publications."""
 
     def __init__(self, known_pubs_file_path=None):
         """Create a database of known pubs.
@@ -151,25 +152,6 @@ class KnownPubDB(object):
 
         return None
 
-    def add_cul_lib_json(self, cul_lib_path):
-        """Add the pubs in a CUL Lib to an empty pubs db."""
-        # read everything in.
-        cul_lib = cul_pub.PubLibrary(cul_lib_path)
-
-        # create a known_pub for every entry
-        for pub in cul_lib.allPapers():
-            # convert old_entry to happy new entry
-            known_pub = KnownPubDBEntry()
-            known_pub.set_title(pub.get_title())
-            known_pub.set_authors(pub.get_authors())
-            known_pub.set_doi(pub.get_doi())
-            known_pub.set_annotation("Imported from CUL")
-            known_pub.set_qualifier("")
-            known_pub.set_state(STATE_INLIB)
-            # we are converted.
-            self.add_known_pub(known_pub)
-        return None
-
     def add_known_pub(self, known_pub):
         """Given a known pub, add it to the in-memory database."""
         # everything has a title
@@ -183,7 +165,7 @@ class KnownPubDB(object):
         return None
 
     def get_all_known_pubs(self):
-        """Return all known pubs in no particular oder"""
+        """Return all known pubs in no particular order"""
         return self.by_canonical_title.values()
 
     def add_pubs_from_matchups(self, pub_matchups):
@@ -223,6 +205,7 @@ class KnownPubDB(object):
 
         # walk through library, sorting into two groups, based on state
         active_entries = []
+        exclude_entries = []
         past_entries = []
         bizarre_entries = []
 
@@ -230,7 +213,7 @@ class KnownPubDB(object):
             entry_state = entry.get_state()
             if entry_state in [STATE_NEW, STATE_WAIT]:
                 active_entries.append(entry)
-            elif entry_state in [STATE_IGNORE, STATE_INLIB]:
+            elif entry_state in [STATE_EXCLUDE,STATE_IGNORE, STATE_INLIB]:
                 past_entries.append(entry)
             else:
                 print(
@@ -240,13 +223,8 @@ class KnownPubDB(object):
                 print(
                     "  Title: {0}".format(entry.get_title()),
                     file=sys.stderr)
-                if entry_state == STATE_CANT_GUESS:
-                    print("  Saving as WAIT state.\n", file=sys.stderr)
-                    entry.set_state(STATE_WAIT)
-                    active_entries.append(entry)
-                else:
-                    print("", file=sys.stderr)
-                    bizarre_entries.append(entry)
+                print("", file=sys.stderr)
+                bizarre_entries.append(entry)
 
         # separator_entry = KnownPubDBEntry.gen_separator_entry()
         for entry_list in [active_entries, past_entries, bizarre_entries]:

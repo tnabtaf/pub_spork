@@ -10,9 +10,7 @@ import pub_alert
 import publication
 
 SENDERS = ["scholaralerts-noreply@google.com"]
-
 IS_EMAIL_SOURCE = True
-
 SOURCE_NAME_TEXT = "Google Scholar Email"              # used in messages
 
 MIN_TRUNCATED_TITLE_LEN = 135  # what's the shortest possible truncated title?
@@ -44,7 +42,7 @@ class GSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         self._alert = email
         self.pub_alerts = []
-        self.search = "Google: "
+        self.search = ""
 
         # Google Scholar email body content is Quoted Printable encoded.
         self._email_body_text = self._alert.body_text

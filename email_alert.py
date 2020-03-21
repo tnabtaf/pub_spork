@@ -3,6 +3,7 @@
 """
 
 # import ssl
+import inspect
 import sys
 import getpass
 import imaplib                            # Email protocol
@@ -10,8 +11,12 @@ import base64
 import quopri
 import alert
 
-IS_EMAIL_SOURCE = True
+# Define constants that should be defined for all subclasses.
+IS_EMAIL_SOURCE = True                    # versus, say RSS
+SENDERS = None                            # list of email addresses
+SOURCE_NAME_TEXT = None                   # eg "ScienceDirect Email
 
+# nasty IMAP bits
 HEADER_PARTS = (
     "(BODY.PEEK[HEADER.FIELDS (From Subject Content-Transfer-Encoding)])")
 BODY_PARTS = "(BODY.PEEK[TEXT])"
@@ -70,6 +75,13 @@ class EmailAlert(alert.Alert):
         self.warn_if_empty = True    # issue warning if no pubs in alert.
 
         return(None)
+
+    def get_search_text_with_alert_source(self):
+        """
+        Return text / name of search, with leading text identifying where 
+        the alert came from
+        """
+        return inspect.getmodule(self).SOURCE_NAME_TEXT + ": " + self.search
 
 
 class AlertSource(alert.AlertSource):

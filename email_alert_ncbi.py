@@ -8,9 +8,8 @@ import pub_alert
 import publication
 
 IS_EMAIL_SOURCE = True
-
 SENDERS = ["efback@ncbi.nlm.nih.gov"]
-
+SOURCE_NAME_TEXT = "My NCBI Email"
 
 class NCBIEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     """
@@ -25,7 +24,7 @@ class NCBIEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         self._alert = email
         self.pub_alerts = []
-        self.search = "My NCBI: "
+        self.search = ""
 
         # email from NCBI uses Quoted Printable encoding.
         decoded = email.body_text

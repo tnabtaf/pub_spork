@@ -21,10 +21,8 @@ SENDERS = [
     "noreply@clarivate.com",
     "alerts-noreply@clarivate.com"  # Starting on 2019/11/07
     ]
-
 IS_EMAIL_SOURCE = True
-
-SOURCE_NAME_TEXT = "Web of Science Email"              # used in messages
+SOURCE_NAME_TEXT = "Web of Science Email"           # used in messages
 
 
 class WoSEmailAlert2018AndBefore(
@@ -59,7 +57,7 @@ class WoSEmailAlert2018AndBefore(
 
         self._alert = email
         self.pub_alerts = []
-        self.search = "WoS: "
+        self.search = ""
         self.warn_if_empty = False  # WoS sends even if nothing to report
 
         body_text = str(self._alert.body_text)
@@ -255,7 +253,7 @@ Then followed by keywords and abstract.
 
         self._alert = email
         self.pub_alerts = []
-        self.search = "WoS: "
+        self.search = ""
         self.warn_if_empty = False  # WoS sends even if nothing to report
         self.expected_pub_count = None
         self.found_pub_count = 0
@@ -487,7 +485,7 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         self._alert = email
         self.pub_alerts = []
-        self.search = "WoS: "
+        self.search = ""
         self.warn_if_empty = False  # WoS sends even if nothing to report
         self.expected_pub_count = None
         self.found_pub_count = 0

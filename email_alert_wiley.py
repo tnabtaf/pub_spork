@@ -9,10 +9,8 @@ import pub_alert
 import publication
 
 SENDERS = ["WileyOnlineLibrary@wiley.com"]
-
 IS_EMAIL_SOURCE = True
-
-SOURCE_NAME_TEXT = "Wiley Online Library"
+SOURCE_NAME_TEXT = "Wiley Online Library Email"
 
 SUBJECT_START_2018 = "Saved Search Alert"
 SUBJECT_START_2018_LEN = len(SUBJECT_START_2018)
@@ -37,7 +35,7 @@ class WileyEmailAlert2018AndBefore(
         email_alert.EmailAlert.__init__(self)
         self._alert = email
         self.pub_alerts = []
-        self.search = "Wiley Online Library: "
+        self.search = ""
 
         # email uses Quoted Printable encoding
         self._email_body_text = self._alert.body_text
@@ -196,7 +194,7 @@ class WileyEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         email_alert.EmailAlert.__init__(self)
         self._alert = email
         self.pub_alerts = []
-        self.search = "Wiley Online Library: "
+        self.search = ""
 
         # email uses Quoted Printable encoding.
         self._email_body_text = self._alert.body_text
@@ -344,7 +342,7 @@ class WileyEmailCitationAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         email_alert.EmailAlert.__init__(self)
         self._alert = email
         self.pub_alerts = []
-        self.search = "Wiley Online Library: "
+        self.search = ""
 
         # email uses Quoted Printable encoding Decode it.
         self._email_body_text = self._alert.body_text

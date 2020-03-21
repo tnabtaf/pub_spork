@@ -178,7 +178,7 @@ class PubMatch(object):
                     break
         return pub_url
 
-    def to_html(self):
+    def to_html(self, exclude_db):
         """Render the PubMatch in HTML."""
 
         output = []
@@ -199,8 +199,14 @@ class PubMatch(object):
                 self._pub_alerts,
                 key=lambda pub_alert: pub_alert.alert.search)
             for pa in pub_alerts_sorted:
+                if exclude_db.is_an_exclude_alert(pa.alert):
+                    li_style = ' style="background-color: yellow;"'
+                else:
+                    li_style = ''
                 output.append(
-                    '<li><strong> {0} </strong></li>'.format(pa.alert.search))
+                    '<li {0}><strong> {1} </strong>'.format(
+                        li_style,
+                        pa.alert.get_search_text_with_alert_source()))
                 output.append('<ul>')
                 if pa.pub.ref:
                     output.append(
@@ -208,7 +214,7 @@ class PubMatch(object):
                 if pa.text_from_pub:
                     output.append(
                         '<ul><li> {0}</li></ul>'.format(pa.text_from_pub))
-                output.append('</ul>')
+                output.append('</ul></li>')
             output.append('</ol>')
         return '\n'.join(output)
 
@@ -382,9 +388,12 @@ class PubMatchDB(object):
             matches_w_alerts,
             key=lambda pub_match: pub_match.canonical_title)
 
-    def matchups_with_pub_alerts_to_html(self, additional_info_callback):
+    def matchups_with_pub_alerts_to_html(
+            self, exclude_db, additional_info_callback):
         """Generate HTML listing all the matchups that have PubAlerts.
         list them in canonical title order.
+
+        Flag alerts that are excluded in a special color.
 
         additional_info_callback is a function that expects a PubMatch as an
         argument and is called from this method to generate additional
@@ -404,6 +413,7 @@ class PubMatchDB(object):
                     state_text += (" ({0}: {1} | {2})".format(
                         state, annotation, qualifier))
                     if state in [
+                            known_pub_db.STATE_EXCLUDE,
                             known_pub_db.STATE_INLIB,
                             known_pub_db.STATE_IGNORE]:
                         div_style = (  # deemphasize it
@@ -425,7 +435,7 @@ class PubMatchDB(object):
             output.append(
                 '<p style="font-size: 160%;">{0}. {1}</p>'.format(
                     counter, state_text))
-            output.append(pm.to_html())
+            output.append(pm.to_html(exclude_db))
 
             # Matchup described; now add additional information
             output += additional_info_callback(pm)

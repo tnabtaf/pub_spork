@@ -8,6 +8,7 @@ The processed list is then used to help add pubs to the target library.
 import argparse
 import urllib.parse
 
+import alert
 import alert_sources
 import email_alert
 import lib_types
@@ -119,6 +120,14 @@ def get_args():
             "Text file containing duplicate titles that have been reviewed "
             + "and are in fact not duplicate titles.  These will not get "
             + "reported as duplicates."))
+    arg_parser.add_argument(
+        "--excludesearches", required = False,
+        help=(
+            "Exclude searches look for matches that we want to exclude "
+            + "from our results. These are useful because it is sometimes "
+            + "easier to list each exclude search, each in a separate search "
+            + "then to include all the excludes in each search (and "
+            + "sometimes we can't make the search that long)."))
     arg_parser.add_argument(
         "--curationpage", required=True,
         help="Where to put the HTML page listing all the pubs.")
@@ -246,14 +255,19 @@ def match_pubs(command_line_args):
     """Match up pubs across all provided sources."""
     global lib_module, input_lib, args
     args = command_line_args
+
+    # Read in publication library, from, for example, Zotero
     lib_module = lib_types.get_lib_module(args.libtype)
     input_lib = lib_module.PubLibrary(args.inputlibpath, args.onlineliburl)
 
     # Get the annotation history database.  This includes pubs we added to the
-    # library, pubs we decided to ignore, and pubs, we are still deciding on.
+    # library, pubs we decided to ignore, and pubs we are still deciding on.
     known_pubs_db = None
     if args.knownpubsin:
         known_pubs_db = known_pub_db.KnownPubDB(args.knownpubsin)
+
+    # read in the list of exclude searches; will be empty if there are none
+    alert_excludes = alert.ExcludeAlertsDB(args.excludesearches)
 
     # Get all alerts
     pub_alerts = []
@@ -265,12 +279,12 @@ def match_pubs(command_line_args):
             account=args.email, imaphost=args.imaphost)
 
     # go through each source and pull in all alerts.
-    sources = args.sources
-    if sources[0] == 'all':
-        sources = alert_sources.ALERT_SOURCES
+    source_ids = args.sources
+    if source_ids[0] == 'all':
+        source_ids = alert_sources.ALERT_SOURCES
 
-    for source in sources:
-        source_module = alert_sources.get_alert_source_module(source)
+    for source_id in source_ids:
+        source_module = alert_sources.get_alert_source_module(source_id)
         if source_module.IS_EMAIL_SOURCE:
             connection = email_connection
         else:
@@ -301,7 +315,7 @@ def match_pubs(command_line_args):
     curation_page.write(html_report.gen_header())
     curation_page.write(
         pub_matchups.matchups_with_pub_alerts_to_html(
-            pub_match_link_list_html))
+            alert_excludes, pub_match_link_list_html))
     curation_page.write(html_report.gen_footer())
     curation_page.close()
 
