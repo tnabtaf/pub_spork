@@ -478,6 +478,8 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         r"has been cited \d+ times? since")
     citing_pubs_over_re = re.compile(
         r"Showing \d+ of \d+ citations?")
+    end_of_citing_pub_section_re = re.compile(
+        r"#797979")
 
     def __init__(self, email):
 
@@ -592,6 +594,18 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         return None
 
     def handle_starttag(self, tag, attrs):
+        if (self._state == WoSEmailAlert.State.CITING_PUB_EXCERPT_NEXT
+                and tag == "div"):
+            # Sometimes there is no excerpt.  If there isn't then current
+            # pub's section ends with
+            # <div style="line-height: 1px; border-bottom-color: #797979;
+            # border-bottom-width: 1px; border-bottom-style: solid;">
+            # That's the only place where #797979 occurs.  Use that to
+            # move on, if you find it.
+            if (WoSEmailAlert.end_of_citing_pub_section_re.search(
+                attrs[0][1])):
+                self._state = WoSEmailAlert.State.CITING_PUB_NEXT
+
         return None
 
     def handle_endtag(self, tag):
