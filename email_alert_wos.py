@@ -470,14 +470,17 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
     saved_search_type_next_re = re.compile(
         r"Your search,")
     saved_search_string_re = re.compile(
-        r"^\((.*?)\) has \d")
+        r"^\((.*?)\) has (\d)")
 
     is_citation_report_re = re.compile(
         r"View (all \d+|this) citations?")
     citation_count_re = re.compile(
         r"has been cited \d+ times? since")
     citing_pubs_over_re = re.compile(
-        r"Showing \d+ of \d+ citations?")
+        r"Showing (\d+) of (\d+) citations?|Showing (\d+) of the (\d+)")
+    citing_pubs_over_re = re.compile(
+        r"Showing (\d+) of( the)* (\d+)( citations?)*")
+
     end_of_citing_pub_section_re = re.compile(
         r"#797979")
 
@@ -543,9 +546,12 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # form: "(Title or search) has 0 new records as of Mon XXth YYYY."
             # We Just want the title or search string. Match to "has" in case
             # title has parens in it.
-            self.search += WoSEmailAlert.saved_search_string_re.match(
-                data).group(1)
-            self._state = WoSEmailAlert.State.DONE
+            important_bits = WoSEmailAlert.saved_search_string_re.match(data)
+            self.search += important_bits.group(1)
+            if important_bits.group(2) == "0":
+                self._state = WoSEmailAlert.State.DONE
+            else:
+                self._state = WoSEmailAlert.State.CITING_PUB_NEXT
 
         # Citation alert states
         elif self._state == WoSEmailAlert.State.CITED_PUB_NEXT:
@@ -557,9 +563,11 @@ class WoSEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             self._state = WoSEmailAlert.State.CITING_PUB_NEXT
 
         elif self._state == WoSEmailAlert.State.CITING_PUB_NEXT:
-            if WoSEmailAlert.citing_pubs_over_re.match(data):
+            counters = WoSEmailAlert.citing_pubs_over_re.match(data)
+            if counters and int(counters.group(1)) == self.found_pub_count:
                 self._state = WoSEmailAlert.State.DONE
-            else:                         # Create a new pub alert.
+            elif not counters:
+                # Create a new pub alert.
                 self._current_pub = publication.Pub()
                 self._current_pub_alert = pub_alert.PubAlert(
                     self._current_pub, self)
@@ -625,6 +633,8 @@ def sniff_class_for_alert(email):
     New body text: starts with <!DOCTYPE html> tag.
     """
     if re.match(r"\s*<html lang=", email.body_text, re.MULTILINE):
+        return WoSEmailAlert
+    elif re.match(r"------=_Part_", email.body_text, re.MULTILINE):
         return WoSEmailAlert
     elif re.match(r"\s*<!DOCTYPE html>", email.body_text, re.MULTILINE):
         return WoSEmailAlert201808To201911

@@ -424,7 +424,14 @@ class PubMatchDB(object):
         new_count = 0
         exclude_only_count = 0
         for pm in self.get_matchups_with_alerts_sorted_by_title():
-            if pm.is_known():
+            if pm._all_excludes:
+                state_text = "Exclude"
+                div_style = "background-color: #ffffee; "
+                exclude_only_count += 1
+                counter = exclude_only_count
+                which_output = exclude_only_output
+
+            elif pm.is_known():
                 state_text = "Known"
                 div_style = "background-color: #dddddd; "
                 if pm._known_pub:
@@ -444,13 +451,6 @@ class PubMatchDB(object):
                 known_count += 1
                 counter = known_count
                 which_output = output
-
-            elif pm._all_excludes:
-                state_text = "Exclude"
-                div_style = "background-color: #ffffee; "
-                exclude_only_count += 1
-                counter = exclude_only_count
-                which_output = exclude_only_output
 
             else:                 # It's a previously unknown pub.
                 state_text = "New"

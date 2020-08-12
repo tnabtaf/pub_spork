@@ -9,6 +9,8 @@ import getpass
 import imaplib                            # Email protocol
 import base64
 import quopri
+import re
+
 import alert
 
 # Define constants that should be defined for all subclasses.
@@ -21,6 +23,7 @@ HEADER_PARTS = (
     "(BODY.PEEK[HEADER.FIELDS (From Subject Content-Transfer-Encoding)])")
 BODY_PARTS = "(BODY.PEEK[TEXT])"
 
+ENCODING_RE = re.compile(rb'Content-Transfer-Encoding: ([\w-]+)')
 
 class Email(object):
     """
@@ -32,6 +35,7 @@ class Email(object):
 
         header_sender_subject = self.header[0][1].decode("utf-8")
         header_lines = header_sender_subject.split("\r\n")
+        self.encoding = None
         for line in header_lines:
             if line[0:6] == "From: ":
                 self.sender = line[6:]
@@ -39,22 +43,30 @@ class Email(object):
                 self.subject = line[9:]
             elif line[0:27] == "Content-Transfer-Encoding: ":
                 self.encoding = line[27:]
-                # Decode email body before returning it
-                if self.encoding == "base64":
-                    self.body_text = base64.standard_b64decode(self.body[0][1])
-                elif self.encoding in ["quoted-printable", "binary"]:
-                    # Binary appears in NCBI emails, but they lie, I think
-                    self.body_text = str(quopri.decodestring(
-                        self.body[0][1]).decode("utf-8"))
-                    # TODO: Need to get UTF encoding from email header as well.
-                elif self.encoding in ["7bit", "8bit"]:
-                    self.body_text = self.body[0][1].decode("utf-8")
-                else:
-                    print(
-                        "ERROR: Unrecognized Content-Transfer-Encoding: "
-                        + "{0}".format(line), file=sys.stderr)
-                    print("   for email with subject: {0}".format(
-                        self.subject))
+
+        if self.encoding == None:
+            # sometimes encoding is stored in the body for multi-part messages
+            # 
+            # body is at [0][1]. Use first encoding we find
+            self.encoding = ENCODING_RE.search(
+                self.body[0][1]).group(1).decode("utf-8")
+
+        # Decode email body before returning it
+        if self.encoding == "base64":
+            self.body_text = base64.standard_b64decode(self.body[0][1])
+        elif self.encoding in ["quoted-printable", "binary"]:
+            # Binary appears in NCBI emails, but they lie, I think
+            self.body_text = str(quopri.decodestring(
+                self.body[0][1]).decode("utf-8"))
+            # TODO: Need to get UTF encoding from email header as well.
+        elif self.encoding in ["7bit", "8bit"]:
+            self.body_text = self.body[0][1].decode("utf-8")
+        else:
+            print(
+                "ERROR: Unrecognized Content-Transfer-Encoding: "
+                + "{0}".format(line), file=sys.stderr)
+            print("   for email with subject: {0}".format(
+                self.subject))
 
         return(None)
 

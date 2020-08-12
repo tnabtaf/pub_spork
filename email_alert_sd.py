@@ -442,6 +442,7 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
             # citing pub has started
             pub = publication.Pub()
             self._current_pub_alert = pub_alert.PubAlert(pub, self)
+            self._current_pub_alert.pub.set_authors("", "")
             self.pub_alerts.append(self._current_pub_alert)
             self._state = SDEmailAlert.STATE_IN_H2
 
@@ -474,7 +475,8 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
 
         elif (tag == "span"
               and self._state
-              == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL):
+              == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL
+              and attrs[0][1] == "color:#848484"):
             self._state = SDEmailAlert.STATE_IN_CITING_JOURNAL
 
         return(None)
@@ -486,12 +488,11 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
                 self._current_pub_alert.pub.set_title(
                     self._current_pub_alert.pub.title + data)
 
-            elif self._state == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL:
-                self._state = SDEmailAlert.STATE_IN_CITING_JOURNAL
+#            elif self._state == SDEmailAlert.STATE_EXPECTING_CITING_JOURNAL:
+#                self._state = SDEmailAlert.STATE_IN_CITING_JOURNAL
 
             elif self._state == SDEmailAlert.STATE_IN_CITING_JOURNAL:
-                self._current_pub_alert.pub.ref = stripped_data
-                self._state = SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS
+                self._current_pub_alert.pub.ref += data
 
             elif self._state == SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS:
                 self._current_pub_alert.pub.set_authors(
@@ -512,9 +513,12 @@ class SDEmailAlert(email_alert.EmailAlert, html.parser.HTMLParser):
         elif (tag == "p"
               and self._state
               == SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS):
-            # ain't no authors listed.  It happens
-            self._current_pub_alert.pub.set_authors("", "")
+            # ain't no authors listed.  It happens. Stick with blank.
             self._state = None
+
+        elif (tag == "span"
+              and self._state ==  SDEmailAlert.STATE_IN_CITING_JOURNAL):
+            self._state = SDEmailAlert.STATE_EXPECTING_CITING_AUTHORS
 
         return(None)
 
