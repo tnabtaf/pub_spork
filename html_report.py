@@ -144,13 +144,13 @@ def gen_tag_year_report(
         # Generate header.
         report.append(gen_header())
     report.append('<table class="table">\n')
-    report.append('  <tr>\n')
-    report.append('    <th> Year </th>\n')
-    report.append('    <th> # Pubs </th>\n')
+    report.append('  <tr style="height: 8rem;">\n')
+    report.append('    <th style="vertical-align: bottom;"> Year </th>\n')
+    report.append('    <th style="vertical-align: bottom;"> # Pubs </th>\n')
     report.append('    <th> </th>\n')  # blank column before starting tags.
     for tag in tags_ordered:
         report.append(
-            '    <th> <a href="'
+            '    <th style="max-width: 3rem; vertical-align: middle; transform: translate(0rem, 2.2rem) rotate(290deg);"> <a href="'
             + lib.gen_tag_url(tag)
             + '">' + tag + '</a> </th>\n')
     report.append('  </tr>\n')
