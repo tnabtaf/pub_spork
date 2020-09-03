@@ -177,6 +177,13 @@ def get_args():
             + "--entryenddate parameters are required if --tagcountdaterange "
             + "is specified."))
     report_args.add_argument(
+        "--pubsdaterange", required=False, action="store_true",
+        help=(
+            "Produce list of publications in the given date range. What is "
+            + "included depends on the --reportformat. --entrystartdate and "
+            + "--entryenddate parameters are required if --pubsdaterange "
+            + "is specified."))
+    report_args.add_argument(
         "--entrystartdate", required=False,
         help=(
             "--tagcountdaterange will report on papers with entry dates "

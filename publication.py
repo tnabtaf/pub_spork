@@ -128,7 +128,7 @@ class PubLibrary(object):
         return None
 
     def add_pub(self, pub):
-        """Add a populated publication to thelibrary."""
+        """Add a populated publication to the library."""
         self.all_pubs.append(pub)
         if pub.canonical_title is None or pub.canonical_title == "":
             # everything should have a title

@@ -103,6 +103,22 @@ def gen_tag_count_date_range_report(
     return u"".join(report)
 
 
+def gen_pubs_date_range_report(
+        lib, format_module,
+        entry_start_date, entry_end_date):
+
+    """
+    Generate the list of publications in the library.
+
+    Return report as a text string.
+    """
+    report = format_module.gen_pubs_date_range_report(
+        lib, entry_start_date, entry_end_date)
+
+    return u"".join(report)
+
+
+
 def get_args():
     """
     Parse command line arguments.
@@ -204,6 +220,11 @@ def generate_lib_report(args):
         print(gen_tag_count_date_range_report(
             input_lib, format_module,
             args.numtagcolumngroups,
+            args.entrystartdate, args.entryenddate))
+
+    if args.pubsdaterange:
+        print(gen_pubs_date_range_report(
+            input_lib, format_module,
             args.entrystartdate, args.entryenddate))
 
     return None

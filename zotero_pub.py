@@ -51,23 +51,23 @@ class Pub(publication.Pub):
 
     The definition comes from a CSV export of a library.
     """
-    def __init__(self, zot_csv):
+    def __init__(self, zot_csv_row):
         """Create a Zotero publication object from a Zotero CSV entry."""
 
         super(Pub, self).__init__()
 
-        self._zot_csv = zot_csv
-        self.title = self._zot_csv["Title"]
+        self._zot_csv_row = zot_csv_row
+        self.title = self._zot_csv_row["Title"]
         self.canonical_title = publication.to_canonical(self.title)
-        self.zotero_id = self._zot_csv['\ufeff"Key"']  # BOM won't go away
-        doi = self._zot_csv.get("DOI")
+        self.zotero_id = self._zot_csv_row['\ufeff"Key"']  # BOM won't go away
+        doi = self._zot_csv_row.get("DOI")
         if doi:  # should be close to canonical already
             doi = publication.to_canonical_doi(doi)
         self.canonical_doi = doi
-        self.url = self._zot_csv["Url"]  # Can be empty
+        self.url = self._zot_csv_row["Url"]  # Can be empty
 
         # Authors is a semicolon separated list of "Last, First I."
-        authors = self._zot_csv.get("Author")
+        authors = self._zot_csv_row.get("Author")
         if authors:
             self.set_authors(
                 authors,
@@ -78,7 +78,7 @@ class Pub(publication.Pub):
                 file=sys.stderr)
             print("  Does not have any authors.\n", file=sys.stderr)
 
-        self.year = self._zot_csv.get("Publication Year")
+        self.year = self._zot_csv_row.get("Publication Year")
         if not self.year:
             self.year = "unknown"
             print(
@@ -87,17 +87,24 @@ class Pub(publication.Pub):
             print("  Does not have a publication year.\n", file=sys.stderr)
 
         # Tags are a semicolon separated list
-        self.tags = self._zot_csv["Manual Tags"].split("; ")
+        self.tags = self._zot_csv_row["Manual Tags"].split("; ")
 
-        if self._zot_csv["Item Type"] == "journalArticle":
-            self.journal_name = self._zot_csv["Publication Title"]
+        if self._zot_csv_row["Item Type"] == "journalArticle":
+            self.journal_name = self._zot_csv_row["Publication Title"]
             self.canonical_journal = publication.to_canonical(
                 self.journal_name)
         else:
             self.canonical_journal = None
 
         # Entry date in Zotero CSV looks like "date": "2017-09-14 17:48:40"
-        self.entry_date = self._zot_csv.get("Date Added")[0:10]
+        self.entry_date = self._zot_csv_row.get("Date Added")[0:10]
+
+        self.ref = ""
+        if not self.journal_name:
+            self.ref = self._zot_csv_row["Publication Title"]
+        year = self._zot_csv_row.get("Publication Year")
+        if year:
+            self.ref += " (" + year + ")"
 
         return None
 
